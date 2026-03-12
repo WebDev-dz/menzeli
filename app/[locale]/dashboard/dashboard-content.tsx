@@ -23,14 +23,14 @@ export function DashboardContent() {
   const user = useMemo(() => storedUser, [storedUser]) as User;
 
   // Helper to format date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
+  const formatDate = (dateInput?: string | Date | null) => {
+    if (!dateInput) return "";
+    const date = new Date(dateInput);
     return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
   };
 
   // Helper to get initials
-  const getInitials = (name?: string) => {
+  const getInitials = (name?: string | null) => {
     if (!name) return "U";
     const parts = name.split(" ");
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
@@ -45,7 +45,7 @@ export function DashboardContent() {
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20 border-4 border-zinc-50 bg-zinc-100">
               <AvatarImage 
-                src={user?.avatar || "/images/placeholder-avatar.png"} 
+                src={user?.profileImage || "/images/placeholder-avatar.png"} 
                 alt={user?.name || "User"} 
                 className="object-cover"
               />
@@ -60,7 +60,7 @@ export function DashboardContent() {
                   {t("profile.pro_user")}
                 </span>
                 <span className="text-sm text-zinc-500">
-                  {t("profile.joined", { date: formatDate(user?.createdAt) || "October 2023" })}
+                  {t("profile.joined", { date: formatDate(user?.createdAt) })}
                 </span>
               </div>
             </div>
@@ -129,7 +129,7 @@ export function DashboardContent() {
             <div className="mt-4">
               <p className="text-sm font-medium text-blue-100">{t("stats.coin_balance")}</p>
               <div className="flex items-baseline gap-2">
-                <h3 className="text-3xl font-bold">{user?.balance || 0}</h3>
+                <h3 className="text-3xl font-bold">0</h3>
                 <span className="text-sm text-blue-100">{t("stats.coins")}</span>
               </div>
             </div>

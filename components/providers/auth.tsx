@@ -151,13 +151,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("token", response.data.token);
         setToken(response.data.token);
         setIsAuthenticated(true);
-        if (response.data.fill_name) {
+        if (response.data.fillName) {
           refetch()
-          return router.push("/");
-        }
+         router.push("/");
+        } else {
         const partialUser = { phone };
         setUser(partialUser);
         localStorage.setItem("user", JSON.stringify(partialUser));
+        }
         
       }
       return response;
@@ -181,6 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("user", JSON.stringify(updatedUser));
         router.push("/");
       }
+      // return response
     } catch (error) {
       console.error("Update name failed:", error);
       throw error;

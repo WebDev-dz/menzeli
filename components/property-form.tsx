@@ -180,7 +180,7 @@ export function PropertyForm({ type, listing }: Props) {
         price: data.price,
         surface: data.surface,
         mainImage: mainImageBase64, // Send Base64 directly
-        memberId: user.id || 1, 
+        memberId: (user && 'id' in user ? user.id : 1), 
         rentDurationId: data.rent_duration_id,
         typeId: data.type_id,
         location: {
