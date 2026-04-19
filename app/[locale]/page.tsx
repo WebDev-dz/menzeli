@@ -6,6 +6,7 @@ import { Marquee } from "@/components/ui/marquee";
 import Link from "next/link";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
+import ChatBotPopover from "@/components/shared/chat-bot-popover";
 import { ListingApi, ListingResource } from "@/api";
 import { apiConfig, API_URL } from "@/lib/api-config";
 
@@ -44,6 +45,7 @@ export default async function Home({
     >
       <div className="min-h-screen bg-white font-sans text-zinc-900">
         <Header page="home" />
+        <ChatBotPopover />
 
         <main>
           {/* Hero Section */}

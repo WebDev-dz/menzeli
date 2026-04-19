@@ -1,6 +1,7 @@
 import initTranslations from "@/app/i18n";
 import TranslationsProvider from "@/components/providers/TranslationsProvider";
 import Header from "@/components/shared/header";
+import ChatBotPopover from "@/components/shared/chat-bot-popover";
 import RealEstateFilterPage from "@/components/properties/property-listing";
 import { ListingsIndexRequest } from "@/api";
 import z from "zod";
@@ -45,5 +46,10 @@ export default async function ListingsPage({
 
   console.log({ parsedSearchParams });
   
-  return <RealEstateFilterPage {...parsedSearchParams.data ?? {}} />;
+  return (
+    <>
+      <RealEstateFilterPage {...(parsedSearchParams.data ?? {})} />
+      <ChatBotPopover />
+    </>
+  );
 }
