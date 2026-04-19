@@ -4,6 +4,7 @@ import Header from "@/components/shared/header";
 import Image from "next/image";
 import Footer from '@/components/shared/footer';
 import AnimatedNumber from '@/components/ui/basic-number';
+import { ConfigSite } from '@/lib/conf';
 
 const stats = [
   { label: 'listings', value: 12000, suffix: '+' },
@@ -22,11 +23,11 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
         <main className="isolate">
           {/* Hero section */}
-          <div className="relative isolate -z-10 overflow-hidden bg-gradient-to-b from-blue-100/20 pt-14">
+          <div className="relative isolate -z-10 overflow-hidden bg-linear-to-b from-blue-100/20 pt-14">
             <div className="mx-auto max-w-7xl px-6 py-20 sm:py-32 lg:px-8">
               <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
                 <h1 className="text-4xl font-bold tracking-tight text-zinc-900 sm:text-6xl">
-                  {t('about:title')}
+                  {t('about:title', {siteName: ConfigSite.siteName})}
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-zinc-600">
                   {t('about:mission.description')}
@@ -57,7 +58,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
               alt=""
               width={2832}
               height={1416}
-              className="aspect-[5/2] w-full object-cover xl:rounded-3xl"
+              className="aspect-5/2 w-full object-cover xl:rounded-3xl"
             />
           </div>
 

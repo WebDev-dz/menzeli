@@ -2,14 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthApi, AuthCompleteProfileOperationRequest, AuthRequestOtp200Response, AuthRequestOtpOperationRequest, AuthVerifyOtp200Response, AuthVerifyOtpOperationRequest, User, UserFromJSON } from "@/api/generated-client";
+import { AuthApi, AuthCompleteProfileOperationRequest, AuthRequestOtp200Response, AuthRequestOtpOperationRequest, AuthVerifyOtp200Response, AuthVerifyOtpOperationRequest, ProfileApi, User, UserFromJSON } from "@/api";
 import { apiConfig, API_URL } from "@/lib/api-config";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 // Initialize AuthApi with configuration to read token from localStorage
 const authApi = new AuthApi(apiConfig);
-
+const memberApi = new ProfileApi(apiConfig);
 
 
 interface AuthContextType {
@@ -51,18 +51,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryFn: async () => {
       if (!token) return null;
       
-      const response = await fetch(`${API_URL}/api/user`, {
+      const response = await memberApi.profileShow({
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
       });
       
-      if (!response.ok) {
+      if (!response.success) {
         throw new Error('Failed to fetch user');
       }
       
-      return response.json();
+      return response.data;
     },
     enabled: !!token && isAuthenticated,
     refetchInterval: 60000,

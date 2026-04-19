@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User } from "@/api/generated-client"
+import { User } from "@/api"
 import { useAuth } from "@/components/providers/auth"
 import { useTranslation } from "react-i18next"
 import Link from "next/link"

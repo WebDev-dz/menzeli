@@ -1,469 +1,298 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
+import { ListingsIndexRequest } from "@/api";
+import { useTranslation } from "react-i18next";
+import { Info, Search, Filter } from "lucide-react";
+import React, { useEffect } from "react";
 import {
   Select,
+  SelectTrigger,
+  SelectValue,
   SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Check, Info, Loader2, Heart } from "lucide-react";
-import { useListings } from "@/hooks/use-listings";
-import { API_URL } from "@/lib/api-config";
-import { useTranslation } from "react-i18next";
-import Image from "next/image";
-import Link from 'next/link';
-import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Slider } from "@/components/ui/slider";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import MainFilters from './main-filter';
+import {
+  useCategories,
+  useCities,
+  usePropertyTypes,
+  useRentDurations,
+  useWilayas,
+} from "@/hooks/use-details";
 
-const societies = [
-  { id: "provident", name: "Provident Cosmo City" },
-  { id: "olympia", name: "Olympia Opaline" },
-  { id: "vijay", name: "Vijay Shanthi Lotus Pond", checked: true },
-  { id: "kg", name: "KG Signature City" },
-  { id: "alliance", name: "Alliance Orchid Springs" }
-];
+export const listingsIndexRequestSchema = z.object({
+  perPage: z.number().optional(),
+  page: z.number().optional(),
+  typeId: z.coerce.number().optional(),
+  categoryId: z.coerce.number().optional(),
+  wilayaId: z.coerce.number().optional(),
+  cityId: z.coerce.number().optional(),
+  rentDurationId: z.coerce.number().optional(),
+  minPrice: z.coerce.number().optional(),
+  maxPrice: z.coerce.number().optional(),
+  minSurface: z.coerce.number().optional(),
+  maxSurface: z.coerce.number().optional(),
+  numberRooms: z.coerce.number().optional(),
+  numberPersons: z.coerce.number().optional(),
+  isReady: z.boolean().optional(),
+  isNegotiable: z.boolean().optional(),
+  search: z.string().optional().nullable(),
+  sortBy: z.enum(["price", "created_at", "surface"]).optional(),
+  sortDir: z.enum(["asc", "desc"]).optional(),
+});
 
-interface Props {
-    perPage?: string
-}
-export default function RealEstateFilterPage({ perPage = "10" }: Props) {
-  const { t } = useTranslation("listings");
-  const { data, isLoading } = useListings({ perPage });
-  const { isFavorite, toggleFavorite } = useFavoritesStore();
+export type PropertyFiltersValues = z.infer<typeof listingsIndexRequestSchema>;
 
-  const [budget, setBudget] = useState([20, 200]);
-  const [selectedBedrooms, setSelectedBedrooms] = useState<number[]>([]);
-  const [selectedFurnishing, setSelectedFurnishing] = useState<string[]>([]);
-  const [selectedSocieties, setSelectedSocieties] = useState<string[]>([]);
-  const [ownerVerified, setOwnerVerified] = useState(false);
-  const [underConstruction, setUnderConstruction] = useState(false);
-  const [readyToMove, setReadyToMove] = useState(false);
-  const [withPhotos, setWithPhotos] = useState(false);
-  const [familyMode, setFamilyMode] = useState(false);
-  const [sortBy, setSortBy] = useState("price");
+const PropertyFilters = () => {
+  const { t } = useTranslation("filters");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const properties = useMemo(() => {
-    if (!data?.data?.listing) return [];
+  // Fetch options
+  const { data: categories } = useCategories();
+  const { data: propertyTypes } = usePropertyTypes();
+  const { data: rentDurations } = useRentDurations();
+  const { data: wilayas } = useWilayas();
+
+  const form = useForm<PropertyFiltersValues>({
+    // @ts-ignore
+    resolver: zodResolver(listingsIndexRequestSchema),
+    defaultValues: {
+      perPage: Number(searchParams.get("perPage")) || 10,
+      page: Number(searchParams.get("page")) || 1,
+      typeId: searchParams.get("typeId") ? Number(searchParams.get("typeId")) : undefined,
+      categoryId: searchParams.get("categoryId") ? Number(searchParams.get("categoryId")) : undefined,
+      wilayaId: searchParams.get("wilayaId") ? Number(searchParams.get("wilayaId")) : undefined,
+      cityId: searchParams.get("cityId") ? Number(searchParams.get("cityId")) : undefined,
+      rentDurationId: searchParams.get("rentDurationId") ? Number(searchParams.get("rentDurationId")) : undefined,
+      minPrice: searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined,
+      maxPrice: searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined,
+      minSurface: searchParams.get("minSurface") ? Number(searchParams.get("minSurface")) : undefined,
+      maxSurface: searchParams.get("maxSurface") ? Number(searchParams.get("maxSurface")) : undefined,
+      numberRooms: searchParams.get("numberRooms") ? Number(searchParams.get("numberRooms")) : undefined,
+      numberPersons: searchParams.get("numberPersons") ? Number(searchParams.get("numberPersons")) : undefined,
+      isReady: searchParams.get("isReady") === "true",
+      isNegotiable: searchParams.get("isNegotiable") === "true",
+      search: searchParams.get("search") || "",
+      sortBy: (searchParams.get("sortBy") as any) || "price",
+      sortDir: (searchParams.get("sortDir") as any) || "asc",
+    },
+  });
+
+  const selectedWilaya = form.watch("wilayaId");
+  const { data: cities } = useCities(selectedWilaya);
+
+  // Watch for changes and submit automatically for some fields or provide a button
+  // For a better UX, we can debounce search or use a "Apply Filters" button.
+  // Given the complexity, a "Apply" button is safer.
+
+  const onSubmit = (data: PropertyFiltersValues) => {
+    const params = new URLSearchParams();
     
-    return data.data.listing.map((p) => ({
-      original: p,
-      id: p.id,
-      title: p.title || "Untitled Property",
-      location: p.location ? `${p.location.city}, ${p.location.wilaya}` : "Unknown Location",
-      price: p.price,
-      pricePerSqFt: p.surface ? Math.round(p.price / p.surface) : 0,
-      area: p.surface || 0,
-      areaDetails: p.surface ? `(${p.surface} sq.m.)` : "",
-      bhk: p.numberRooms || 0,
-      baths: 1, // Defaulting as API doesn't provide this yet
-      description: p.description || "No description available.",
-      verified: p.moderationStatus === "published",
-      postedDate: new Date().toLocaleDateString(), // Mocking date
-      owner: "Agent", // Mocking owner
-      image: p.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop",
-      society: "unknown",
-      furnishing: "unfurnished",
-      underConstruction: !p.isReady,
-      readyToMove: p.isReady,
-      hasPhotos: !!p.image,
-      features: p.features
-    }));
-  }, [data]);
+    // Helper to append if value exists
+    const appendIfDefined = (key: string, value: any) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.append(key, String(value));
+      }
+    };
 
-  const filteredAndSortedProperties = useMemo(() => {
-    const filtered = properties.filter((property) => {
-      // Budget filter (price in thousands) - Adjusting logic based on likely API price range
-      // Assuming API returns raw price (e.g. 50000) and slider is in k (20k to 200k)
-      // If API price is 50000, that is 50k.
-      // So we compare property.price / 1000 with budget range.
-      const priceInK = property.price / 1000;
-      if (priceInK < budget[0] || priceInK > budget[1]) return false;
+    appendIfDefined("perPage", data.perPage);
+    appendIfDefined("page", 1); // Reset to page 1 on filter change
+    appendIfDefined("typeId", data.typeId);
+    appendIfDefined("categoryId", data.categoryId);
+    appendIfDefined("wilayaId", data.wilayaId);
+    appendIfDefined("cityId", data.cityId);
+    appendIfDefined("rentDurationId", data.rentDurationId);
+    appendIfDefined("minPrice", data.minPrice);
+    appendIfDefined("maxPrice", data.maxPrice);
+    appendIfDefined("minSurface", data.minSurface);
+    appendIfDefined("maxSurface", data.maxSurface);
+    appendIfDefined("numberRooms", data.numberRooms);
+    appendIfDefined("numberPersons", data.numberPersons);
+    if (data.isReady) params.append("isReady", "true");
+    if (data.isNegotiable) params.append("isNegotiable", "true");
+    appendIfDefined("search", data.search);
+    appendIfDefined("sortBy", data.sortBy);
+    appendIfDefined("sortDir", data.sortDir);
 
-      // Bedroom filter
-      if (selectedBedrooms.length > 0 && !selectedBedrooms.includes(property.bhk)) return false;
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
-      // Society filter
-      if (selectedSocieties.length > 0 && !selectedSocieties.includes(property.society))
-        return false;
-
-      // Furnishing filter
-      if (selectedFurnishing.length > 0 && !selectedFurnishing.includes(property.furnishing))
-        return false;
-
-      // Top filter badges
-      if (ownerVerified && !property.verified) return false;
-      if (underConstruction && !property.underConstruction) return false;
-      if (readyToMove && !property.readyToMove) return false;
-      if (withPhotos && !property.hasPhotos) return false;
-
-      return true;
+  const resetFilters = () => {
+    form.reset({
+        perPage: 10,
+        page: 1,
+        isReady: false,
+        isNegotiable: false,
+        search: ""
     });
-
-    // Sort filtered results
-    filtered.sort((a, b) => {
-      if (sortBy === "price") return a.price - b.price;
-      if (sortBy === "area") return b.area - a.area;
-      // Date sort is mocked since we don't have real dates
-      return 0;
-    });
-
-    return filtered;
-  }, [
-    properties,
-    budget,
-    selectedBedrooms,
-    selectedSocieties,
-    selectedFurnishing,
-    ownerVerified,
-    underConstruction,
-    readyToMove,
-    withPhotos,
-    sortBy
-  ]);
-
-  const toggleBedroom = (bedroom: number) => {
-    setSelectedBedrooms((prev) =>
-      prev.includes(bedroom) ? prev.filter((b) => b !== bedroom) : [...prev, bedroom]
-    );
-  };
-
-  const toggleFurnishing = (furnishing: string) => {
-    setSelectedFurnishing((prev) =>
-      prev.includes(furnishing) ? prev.filter((f) => f !== furnishing) : [...prev, furnishing]
-    );
-  };
-
-  const toggleSociety = (society: string) => {
-    setSelectedSocieties((prev) =>
-      prev.includes(society) ? prev.filter((s) => s !== society) : [...prev, society]
-    );
-  };
-
-  const clearAllFilters = () => {
-    setBudget([20, 200]);
-    setSelectedBedrooms([]);
-    setSelectedFurnishing([]);
-    setSelectedSocieties([]);
-    setOwnerVerified(false);
-    setUnderConstruction(false);
-    setReadyToMove(false);
-    setWithPhotos(false);
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "DZD", // Changed to DZD for Algeria context
-      maximumFractionDigits: 0
-    }).format(price);
+    router.push(pathname);
   };
 
   return (
-    <>
-      {/* Header */}
-      <div className = "w-full">
-
-      <header className="border-b">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-semibold">
-                  {isLoading ? "Loading..." : `${filteredAndSortedProperties.length} ${t('filters.title')}`}
-                </h1>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Filters Bar */}
-      <div className="border-b">
-        <div className="mx-auto max-w-7xl px-4 py-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap gap-2">
-              <Badge
-                variant={ownerVerified ? "default" : "secondary"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setOwnerVerified(!ownerVerified)}>
-                {t('filters.owner_verified')}
-              </Badge>
-              <Badge
-                variant={underConstruction ? "default" : "secondary"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setUnderConstruction(!underConstruction)}>
-                {t('filters.under_construction')}
-              </Badge>
-              <Badge
-                variant={readyToMove ? "default" : "secondary"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setReadyToMove(!readyToMove)}>
-                {t('filters.ready_to_move')}
-              </Badge>
-              <Badge
-                variant={withPhotos ? "default" : "secondary"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setWithPhotos(!withPhotos)}>
-                {t('filters.with_photos')}
-              </Badge>
-            </div>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2">
-                <Switch id="family-mode" checked={familyMode} onCheckedChange={setFamilyMode} />
-                <Label htmlFor="family-mode" className="flex items-center gap-1 text-sm">
-                  {t('filters.family_mode')} <Info className="text-muted-foreground size-4" />
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger id="sort" className="">
-                    {t('filters.sort_by')}: <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="price">{t('filters.price')}</SelectItem>
-                    <SelectItem value="date">{t('filters.date')}</SelectItem>
-                    <SelectItem value="area">{t('filters.area')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="w-full max-w-7xl px-4 py-6">
-        <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-          {/* Sidebar Filters */}
-          <aside className="space-y-4">
-            <Card className="shadow-none">
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle>{t('filters.applied_filters')}</CardTitle>
-                <CardAction>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary"
-                    onClick={clearAllFilters}>
-                    {t('filters.clear_all')}
-                  </Button>
-                </CardAction>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Budget Filter */}
-                <div className="space-y-3">
-                  <Label className="font-semibold">{t('filters.budget')}</Label>
-                  <div className="px-2 pt-2">
-                    <Slider
-                      value={budget}
-                      onValueChange={setBudget}
-                      min={20}
-                      max={200}
-                      step={5}
-                      className="mb-4"
-                    />
-                    <div className="text-muted-foreground flex justify-between text-sm">
-                      <span>{budget[0]}k</span>
-                      <span>{budget[1]}k</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bedrooms Filter */}
-                <div className="space-y-3">
-                  <Label className="font-semibold">{t('filters.bedrooms')}</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3, 4, 6, 7, 8].map((bedroom) => (
-                      <Button
-                        key={bedroom}
-                        variant={selectedBedrooms.includes(bedroom) ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => toggleBedroom(bedroom)}>
-                        {bedroom}{t('filters.bhk')}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Societies Filter */}
-                <div className="space-y-3">
-                  <Label className="font-semibold">{t('filters.societies')}</Label>
-                  <div className="space-y-2">
-                    {societies.map((society) => (
-                      <div key={society.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={society.id}
-                          checked={selectedSocieties.includes(society.id)}
-                          onCheckedChange={() => toggleSociety(society.id)}
-                        />
-                        <Label htmlFor={society.id} className="cursor-pointer text-sm font-normal">
-                          {society.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Furnishing Status Filter */}
-                <div className="space-y-3">
-                  <Label className="font-semibold">{t('filters.furnishing')}</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Unfurnished", "Semi furnished", "furnished", "Fully furnished"].map(
-                      (furnishing) => (
-                        <Button
-                          key={furnishing}
-                          variant={selectedFurnishing.includes(furnishing) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleFurnishing(furnishing)}
-                          className="text-xs">
-                            {/* @ts-ignore */}
-                          {t(`filters.furnishing_types.${furnishing.toLowerCase().replace(' ', '_')}`)}
-                        </Button>
-                      )
+    <div className="w-full">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit, console.error)} className="space-y-4">
+          <div className="border-b bg-white">
+            <div className="mx-auto max-w-7xl px-4 py-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                
+                {/* Search Bar */}
+                <div className="flex-1 max-w-sm">
+                  <FormField
+                    control={form.control}
+                    name="search"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder={t("search_placeholder") || "Search..."}
+                              className="pl-9"
+                              {...field}
+                              value={field.value || ""}
+                            />
+                          </div>
+                        </FormControl>
+                      </FormItem>
                     )}
-                  </div>
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </aside>
 
-          {/* Property Listings */}
-          <main className="space-y-6">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="animate-spin h-8 w-8 text-primary" />
-              </div>
-            ) : filteredAndSortedProperties.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-muted-foreground text-lg">
-                    {t('filters.no_results')}
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              filteredAndSortedProperties.map((property) => (
-                <Card key={property.id} className="py-0 shadow-none overflow-hidden">
-                  <CardContent className="p-0 ">
-                    <div className="grid md:grid-cols-[250px_1fr]">
-                      {/* Property Image */}
-                      <div className="relative">
-                        <img
-                          src={property.image.startsWith('http') ? property.image : `${API_URL}${property.image}`}
-                          alt={property.title}
-                          className="aspect-square h-full w-full object-cover md:rounded-l-lg"
-                        />
-                        <div className="absolute top-2 right-2 flex flex-col gap-2 items-end">
-                          {property.verified && (
-                            <Badge className="bg-white text-green-600 hover:bg-white border-none shadow-sm">
-                              <Check className="w-3 h-3 mr-1" /> Verified
+                {/* Quick Filters */}
+                <div className="flex flex-wrap items-center gap-2">
+                   <FormField
+                    control={form.control}
+                    name="isReady"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                            <Badge
+                                variant={field.value ? "default" : "outline"}
+                                className="cursor-pointer px-3 py-1 hover:bg-primary/90"
+                                onClick={() => {
+                                    field.onChange(!field.value);
+                                    // Optionally submit immediately for toggles
+                                    // form.handleSubmit(onSubmit)();
+                                }}
+                            >
+                                {t("ready_to_move") || "Ready to Move"}
                             </Badge>
-                          )}
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-sm text-zinc-500 hover:text-red-500"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleFavorite(property.original);
-                            }}
-                          >
-                            <Heart className={`h-4 w-4 ${isFavorite(property.id) ? "fill-red-500 text-red-500" : ""}`} />
-                          </Button>
-                        </div>
-                      </div>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="isNegotiable"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                            <Badge
+                                variant={field.value ? "default" : "outline"}
+                                className="cursor-pointer px-3 py-1 hover:bg-primary/90"
+                                onClick={() => {
+                                    field.onChange(!field.value);
+                                }}
+                            >
+                                {t("negotiable") || "Negotiable"}
+                            </Badge>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-                      {/* Property Details */}
-                      <div className="px-6 py-4">
-                        <div className="space-y-4">
-                          <div>
-                            <Link href= {`/listings/${property.id}`}>
-                            <h3 className="text-foreground text-lg font-semibold">
-                              {property.title}
-                            </h3>
-                            </Link>
-                            <p className="text-muted-foreground text-sm">{property.location}</p>
-                          </div>
+                  {/* Sort By */}
+                   <FormField
+                    control={form.control}
+                    name="sortBy"
+                    render={({ field }) => (
+                      <FormItem className="min-w-35">
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("sort_by") || "Sort by"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="price">{t("price") || "Price"}</SelectItem>
+                            <SelectItem value="created_at">{t("date") || "Date"}</SelectItem>
+                            <SelectItem value="surface">{t("area") || "Area"}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
 
-                          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                            <div>
-                              <p className="text-xl font-bold">{formatPrice(property.price)}</p>
-                              <p className="text-muted-foreground text-xs">
-                                {property.pricePerSqFt ? `$${property.pricePerSqFt}/sq.ft.` : 'N/A'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xl font-bold">{property.area} sq.m.</p>
-                              <p className="text-muted-foreground text-xs">
-                                {property.areaDetails}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xl font-bold">{property.bhk} {t('filters.bhk')}</p>
-                              <p className="text-muted-foreground text-xs">
-                                {property.baths} Baths
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Features */}
-                          {property.features && property.features.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {property.features.slice(0, 3).map((feature) => (
-                                <Badge key={feature.id} variant="secondary" className="flex items-center gap-1 text-xs font-normal">
-                                  {feature.iconPath && (
-                                    <img 
-                                      src={`${API_URL}${feature.iconPath}`} 
-                                      alt="" 
-                                      className="w-3 h-3" 
-                                    />
-                                  )}
-                                  {feature.name}
-                                </Badge>
-                              ))}
-                              {property.features.length > 3 && (
-                                <Badge variant="outline" className="text-xs font-normal">
-                                  +{property.features.length - 3}
-                                </Badge>
-                              )}
-                            </div>
-                          )}
+                  {/* Mobile Filters / More Filters Sheet */}
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Filter className="h-4 w-4" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent className="overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle>{t("all_filters") || "All Filters"}</SheetTitle>
+                        <SheetDescription>
+                          {t("refine_search") || "Refine your search results"}
+                        </SheetDescription>
+                      </SheetHeader>
+                     <MainFilters 
+                      form={form}
+                      onSubmit={onSubmit}
+                      resetFilters={resetFilters}
+                      selectedWilaya = {selectedWilaya}
+                      cities = {cities}
+                     />
+                    </SheetContent>
+                  </Sheet>
+                  
+                  <Button  type="submit">
+                    {t("search") || "Search"}
+                  </Button>
 
-                          <p className="text-muted-foreground line-clamp-2 text-sm">
-                            {property.description}{" "}
-                            <Link href= {`/listings/${property.id}`}>
-                            <span className="text-primary cursor-pointer">{t('filters.more')}</span>
-                            </Link>
-                          </p>
-
-                          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <Button className="w-full sm:w-auto">{t('filters.contact_owner')}</Button>
-                            <div className="text-muted-foreground text-xs sm:text-right">
-                              <p>
-                                {t('filters.posted_by').replace('{{date}}', new Date(property.postedDate).toLocaleString("en-US"))}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </main>
-        </div>
-      </div>
-    </>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
-}
+};
+
+export default PropertyFilters;

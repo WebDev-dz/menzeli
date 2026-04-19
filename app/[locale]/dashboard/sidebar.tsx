@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { ConfigSite } from "@/lib/conf";
 
 interface SidebarProps {
   locale: string;
@@ -47,7 +48,7 @@ export function Sidebar({ locale }: SidebarProps) {
         </div>
         <div>
           <h1 className="text-lg font-bold leading-none text-zinc-900 dark:text-zinc-50">
-            Menzeli
+            {ConfigSite.siteName}
           </h1>
           <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
             Real Estate Marketplace

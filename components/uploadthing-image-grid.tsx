@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface ImageItem {
   id: string;
   url: string;
+  file: File;
   name?: string;
 }
 

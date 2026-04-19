@@ -41,7 +41,7 @@
     "explore": "Explore",
     "company": "Company",
     "support": "Support",
-    "copyright": "© 2026 Menzeli Real Estate. Made with ❤️ in Algeria.",
+    "copyright": "© 2026 {{ siteName }} Real Estate. Made with ❤️ in Algeria.",
     "contact": "Contact Us",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
+import { ConfigSite } from "@/lib/conf";
 
 export default function Footer() {
   const { t, i18n } = useTranslation("common");
@@ -18,12 +19,12 @@ export default function Footer() {
            <Link href="/" className="flex items-center gap-2">
                <Image
                  src={"/images/mmb9j5lh-4pas8mg.svg"}
-                 alt="Menzeli Logo"
+                 alt={`${ConfigSite.siteName} Logo`}
                  width={32}
                 height={32}
                 className="h-8 w-8"
               />
-               <span className="text-xl font-extrabold text-slate-900 tracking-tight">Menzeli</span>
+               <span className="text-xl font-extrabold text-slate-900 tracking-tight">{ConfigSite.siteName}</span>
              </Link>
             <p className="text-sm leading-6 text-zinc-600 max-w-sm">
               {t('footer.description')}
@@ -76,7 +77,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-16 border-t border-zinc-900/10 pt-8 sm:mt-20 lg:mt-24 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <p className="text-xs leading-5 text-zinc-500">{t('footer.copyright')}</p>
+          <p className="text-xs leading-5 text-zinc-500">{t('footer.copyright', {siteName: ConfigSite.siteName})}</p>
           <div className="flex items-center gap-4">
             <button className="flex items-center gap-2 text-sm text-zinc-600 hover:text-zinc-900">
               <Image src="/images/mmb90oco-t8dm4mb.svg" alt="Global" width={16} height={16} />

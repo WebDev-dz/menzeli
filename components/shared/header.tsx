@@ -9,6 +9,7 @@ import i18nConfig from "@/i18nConfig";
 import {useEffect} from 'react';
 import UserDropdown from "./user-dropdown";
 import { NotificationsDropdown } from "./notifications-dropdown";
+import { ConfigSite } from "@/lib/conf";
 
 type HeaderProps =
   | {
@@ -73,16 +74,16 @@ export default function Header(props: HeaderProps) {
           <Link href="/" className="flex items-center gap-2">
                <Image
                  src={"/images/mmb9j5lh-4pas8mg.svg"}
-                 alt="Menzeli Logo"
+                 alt={`${ConfigSite.siteName} Logo`}
                  width={32}
                 height={32}
                 className="h-8 w-8"
               />
-               <span className="text-xl font-extrabold text-slate-900 tracking-tight">Menzeli</span>
+               <span className="text-xl font-extrabold text-slate-900 tracking-tight">{ConfigSite.siteName}</span>
              </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600">
             <Link href={`/${currentLocale}/listings`} className="hover:text-blue-600 transition-colors">{i18n.t('common:header.browse')}</Link>
-            <Link href={`/${currentLocale}/about`} className="hover:text-blue-600 transition-colors">{i18n.t('common:header.about')}</Link>
+            <Link href={`/${currentLocale}/about`} className="hover:text-blue-600 transition-colors">{i18n.t('common:header.about', {siteName: ConfigSite.siteName})}</Link>
             <Link href={`/${currentLocale}/contact`} className="hover:text-blue-600 transition-colors">{i18n.t('common:header.contact')}</Link>
           </nav>
         </div>

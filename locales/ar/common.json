@@ -41,7 +41,7 @@
     "explore": "اكتشف",
     "company": "الشركة",
     "support": "الدعم",
-    "copyright": "© 2026 Menzeli Real Estate. صنع بـ ❤️ في الجزائر.",
+    "copyright": "© 2026 {{ siteName }} Real Estate. صنع بـ ❤️ في الجزائر.",
     "contact": "اتصل بنا",
     "terms": "شروط الخدمة",
     "privacy": "سياسة الخصوصية",
@@ -49,7 +49,7 @@
   },
   "header": {
     "browse": "تصفح",
-    "about": "عن منزلي",
+    "about": "عن {{siteName}}",
     "contact": "اتصل بنا",
     "list_property": "أضف عقارك",
     "login": "تسجيل الدخول",

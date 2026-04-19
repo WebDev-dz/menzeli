@@ -6,7 +6,7 @@ import { Marquee } from "@/components/ui/marquee";
 import Link from "next/link";
 import Header from "@/components/shared/header";
 import Footer from "@/components/shared/footer";
-import { ListingApi, ListingResource } from "@/api/generated-client";
+import { ListingApi, ListingResource } from "@/api";
 import { apiConfig, API_URL } from "@/lib/api-config";
 
 export default async function Home({
@@ -21,7 +21,7 @@ export default async function Home({
   const listingApi = new ListingApi(apiConfig);
   let featuredListings: ListingResource[] = [];
   try {
-    const response = await listingApi.listingsIndex({ perPage: "6" });
+    const response = await listingApi.index({ perPage: 6 });
     featuredListings = response.data.listing;
   } catch (error) {
     console.error("Failed to fetch featured listings:", error);

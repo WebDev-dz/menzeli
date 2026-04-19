@@ -38,7 +38,7 @@
     "location": "Location",
     "living_space": "Living Space",
     "schedule_tour": "Schedule tour",
-    "schedule_desc": "See your future home up close — book a tour with Menzeli today and let us help you find the perfect place!",
+    "schedule_desc": "See your future home up close — book a tour with {{ siteName }} today and let us help you find the perfect place!",
     "property_id": "Property ID",
     "property_name": "Property Name",
     "full_name": "Full Name",

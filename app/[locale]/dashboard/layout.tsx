@@ -11,10 +11,11 @@ export default async function DashboardLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const { resources } = await initTranslations(locale, ["dashboard", "common"]);
+  const namespaces = ["dashboard", "common", "property-form"];
+  const { resources } = await initTranslations(locale,namespaces );
 
   return (
-    <TranslationsProvider locale={locale} namespaces={["dashboard", "common"]} resources={resources}>
+    <TranslationsProvider locale={locale} namespaces={namespaces} resources={resources}>
       <div className="flex rtl:flex-row-reverse min-h-screen bg-zinc-50 font-sans text-zinc-900">
         {/* Sidebar */}
         <Sidebar locale={locale} />

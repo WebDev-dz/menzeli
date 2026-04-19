@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ListingResource } from '@/api/generated-client';
+import { ListingResource } from '@/api';
 
 interface FavoritesState {
   favorites: ListingResource[];

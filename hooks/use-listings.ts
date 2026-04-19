@@ -3,65 +3,49 @@ import {
   ListingApi,
   ListingResource,
   ListingResourceFromJSON,
-  StoreRequest,
-  UpdateRequest,
-} from "@/api/generated-client";
+  ListingsStoreRequest,
+  ListingsUpdateRequest,
+  ListingsIndexRequest,
+ 
+} from "@/api";
 import { apiConfig } from "@/lib/api-config";
 import { useAuth } from '../components/providers/auth';
 
 const listingApi = new ListingApi(apiConfig);
 
-export function useListings(params?: { perPage?: string }) {
+export function useListings(params?: ListingsIndexRequest) {
   return useQuery({
     queryKey: ["listings", params],
     queryFn: async () => {
-      const response = await listingApi.listingsIndex(params);
+      const response = await listingApi.index(params);
       return response;
     },
   });
 }
 
-export function useCreateListing() {
-  const queryClient = useQueryClient();
-  const { token } = useAuth()
-  return useMutation({
-    mutationFn: (data: StoreRequest) =>
-      listingApi.listingsStore(
-        { storeRequest: data },
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-    },
-  });
-}
 
-export function useUpdateListing() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateRequest }) =>
-      listingApi.listingsUpdate({ listing: id, updateRequest: data }),
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-      queryClient.invalidateQueries({ queryKey: ["listing", variables.id] });
-    },
-  });
-}
 
-export function useDeleteListing() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: number) => listingApi.listingsDestroy({ listing: id }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["listings"] });
-    },
-  });
-}
+// export function useUpdateListing() {
+//   const queryClient = useQueryClient();
+//   return useMutation({
+//     mutationFn: ({  data }: { data: ListingsUpdateRequest }) =>
+//       listingApi.listingUpdate(data),
+//     onSuccess: (data, variables) => {
+//       queryClient.invalidateQueries({ queryKey: ["listings"] });
+//       queryClient.invalidateQueries({ queryKey: ["listing", variables.data] });
+//     },
+//   });
+// }
+
+// export function useDeleteListing() {
+//   const queryClient = useQueryClient();
+//   return useMutation({
+//     mutationFn: (id: number) => listingApi.listingsDestroy({ listing: id }),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["listings"] });
+//     },
+//   });
+// }
 
 export function useListing(id: number) {
   return useQuery<ListingResource>({

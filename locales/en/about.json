@@ -1,5 +1,5 @@
 {
-  "title": "About Menzeli",
+  "title": "About {{ siteName }}",
   "subtitle": "Revolutionizing Real Estate in Algeria",
   "mission": {
     "title": "Our Mission",

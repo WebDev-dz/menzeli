@@ -1,7 +1,7 @@
 import initTranslations from "@/app/i18n";
 import TranslationsProvider from "@/components/providers/TranslationsProvider";
 import Header from "@/components/shared/header";
-import RealEstateFilterPage from "@/components/properties/property-filters";
+import RealEstateFilterPage from "@/components/properties/property-listing";
 import Footer from '../../../components/shared/footer';
 
 export default async function ListingsLayout({
@@ -12,7 +12,7 @@ export default async function ListingsLayout({
   children: React.ReactNode;
 }) {
   const { locale } = await params;
-  const { t, resources } = await initTranslations(locale, ["common", "listings"]);
+  const { t, resources } = await initTranslations(locale, ["common", "listings","filters"]);
 
   
   return (

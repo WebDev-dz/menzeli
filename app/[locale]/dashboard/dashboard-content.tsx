@@ -15,7 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/providers/auth";
 import { useMemo } from 'react';
-import { User } from "@/api/generated-client";
+import { User } from "@/api";
 
 export function DashboardContent() {
   const { t } = useTranslation("dashboard");

@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { isNotComplete, useAuth } from "@/components/providers/auth";
 import Header from "@/components/shared/header";
 import { useTranslation } from "react-i18next";
+import { ConfigSite } from "@/lib/conf";
 
 export default function AuthContent() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -55,9 +56,9 @@ export default function AuthContent() {
       setError("");
       try {
          const response = await login(`+213${phoneNumber}`);
-         
+         const otpCode = response.data.otpCode!
         setStep(2);
-        setOtp(response.data.otpCode.split(''));
+        setOtp(otpCode.split(''));
         setTimer(119);
       } catch (err) {
         setError(t("step1.error_send"));
@@ -170,7 +171,7 @@ export default function AuthContent() {
               </div>
 
               <h1 className="text-3xl font-bold text-slate-900 mb-2 text-center">
-                {t("step1.title")}
+                {t("step1.title", { siteName: ConfigSite.siteName })}
               </h1>
               <p className="text-slate-500 text-center mb-10">
                 {t("step1.subtitle")}
@@ -248,7 +249,7 @@ export default function AuthContent() {
 
               <div className="mt-10 text-center text-xs text-slate-500">
                 <p>
-                  {t("step1.terms_prefix")}{" "}
+                  {t("step1.terms_prefix", {siteName: ConfigSite.siteName})}{" "}
                   <Link
                     href="#"
                     className="font-semibold text-blue-600 hover:underline"
@@ -407,7 +408,7 @@ export default function AuthContent() {
 
         {/* Footer Step 2 style mostly */}
         <div className="mt-12 w-full max-w-4xl border-t border-slate-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <p>{t("footer.copyright")}</p>
+          <p>{t("footer.copyright", { siteName: ConfigSite.siteName })}</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-slate-600">
               {t("footer.privacy")}

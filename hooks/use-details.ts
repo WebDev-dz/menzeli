@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { DetailsApi } from "@/api/generated-client/apis/DetailsApi";
+import { DetailsApi } from "@/api";
 import { apiConfig } from "@/lib/api-config";
 
 const detailsApi = new DetailsApi(apiConfig);

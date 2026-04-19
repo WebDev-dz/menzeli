@@ -5,6 +5,8 @@ import { QueryProvider } from "@/components/providers/query";
 import { AuthProvider } from "@/components/providers/auth";
 import i18nConfig from "@/i18nConfig";
 import { dir } from 'i18next';
+import { ConfigSite } from "@/lib/conf";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,9 +24,9 @@ const ibm = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Menzeli",
+  title: `${ConfigSite.siteName}`,
   description: "Largest Real Estate Marketplace in Algeria",
-  keywords: "Menzeli, Real Estate, Algeria, Men, Women, Marketplace",
+  keywords: `${ConfigSite.siteName}, Real Estate, Algeria, Men, Women, Marketplace`,
 };
 
 export function generateStaticParams() {
@@ -51,6 +53,8 @@ export default async function RootLayout({
             {children}
           </AuthProvider>
         </QueryProvider>
+        <Toaster />
+
       </body>
     </html>
   );

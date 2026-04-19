@@ -38,7 +38,7 @@
     "location": "Emplacement",
     "living_space": "Espace de vie",
     "schedule_tour": "Planifier une visite",
-    "schedule_desc": "Voyez votre future maison de près — réservez une visite avec Menzeli aujourd'hui et laissez-nous vous aider à trouver l'endroit parfait !",
+    "schedule_desc": "Voyez votre future maison de près — réservez une visite avec {{ siteName }} aujourd'hui et laissez-nous vous aider à trouver l'endroit parfait !",
     "property_id": "ID de la propriété",
     "property_name": "Nom de la propriété",
     "full_name": "Nom complet",

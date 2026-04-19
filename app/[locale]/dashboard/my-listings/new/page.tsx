@@ -1,6 +1,6 @@
 
 import initTranslations from "@/app/i18n";
-import { PropertyForm } from "@/components/property-form";
+import { PropertyForm } from "@/components/properties/property-form";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -10,7 +10,7 @@ export default async function NewListingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const { t } = await initTranslations(locale, ["dashboard", "common"]);
+  const { t } = await initTranslations(locale, ["dashboard", "common", "property-form"]);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -28,7 +28,7 @@ export default async function NewListingPage({
       </div>
 
       {/* Form */}
-      <PropertyForm />
+      <PropertyForm  />
     </div>
   );
 }

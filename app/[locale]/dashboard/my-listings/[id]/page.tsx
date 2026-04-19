@@ -1,16 +1,21 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { PropertyForm } from "@/components/property-form";
+import { PropertyForm } from "@/components/properties/property-form";
 import { useListing } from "@/hooks/use-listings";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
+import initTranslations from "@/app/i18n";
 
 export default function EditListingPage() {
   const params = useParams();
   const id = Number(params.id);
   const { data: listing, isLoading, error } = useListing(id);
-  const { t } = useTranslation("dashboard");
+  // Ensure translations are loaded if not already handled by a parent layout or provider
+  // Since this is a client component, we rely on the provider.
+  // But if the namespace isn't loaded, we might need to load it.
+  // However, usually we load namespaces in the server component that renders this, or add it to the provider.
+  const { t } = useTranslation(["dashboard", "property-form"]);
 
   if (isLoading) {
     return (
