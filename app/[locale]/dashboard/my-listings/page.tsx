@@ -1,27 +1,21 @@
+import { Suspense } from "react";
 import initTranslations from "@/app/i18n";
-import { ListingApi, ListingResource } from "@/api";
-import { apiConfig, API_URL } from "@/lib/api-config";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Search,
   Plus,
-  LayoutGrid,
-  List as ListIcon,
-  MoreVertical,
-  Eye,
-  PhoneCall,
-  Edit,
-  Megaphone,
-  Trash2,
-  MapPin,
-  TrendingUp,
-  Image as ImageIcon
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import ListingContent from "./content";
+
+function ListingsContentFallback() {
+  return (
+    <div className="flex items-center justify-center py-16 text-sm text-zinc-500">
+      Loading listings...
+    </div>
+  );
+}
 
 export default async function MyListingsPage({
   params,
@@ -30,33 +24,6 @@ export default async function MyListingsPage({
 }) {
   const { locale } = await params;
   const { t, resources } = await initTranslations(locale, ["dashboard"]);
-
-  // Fetch listings using the regular API as requested
-  
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(locale === "ar" ? "ar-DZ" : "en-US", {
-      style: "currency",
-      currency: "DZD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  // Helper to determine status style
-  const getStatusStyle = (status: string, isReady: boolean) => {
-    if (status === "sold") return "bg-zinc-100 text-zinc-600";
-    if (!isReady) return "bg-orange-100 text-orange-600"; // Pending/Under construction
-    return "bg-green-100 text-green-600"; // Active/Ready
-  };
-
-  const getStatusLabel = (status: string, isReady: boolean) => {
-    if (status === "sold") return t("dashboard:listings.status.sold");
-    if (!isReady) return t("dashboard:listings.status.pending");
-    return t("dashboard:listings.status.active");
-
-  };
-
 
   return (
     <div className="space-y-6">
@@ -84,7 +51,9 @@ export default async function MyListingsPage({
       </div>
 
       {/* Content */}
-      <ListingContent />
+      <Suspense fallback={<ListingsContentFallback />}>
+        <ListingContent />
+      </Suspense>
       
       
     </div>
