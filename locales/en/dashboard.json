@@ -3,6 +3,7 @@
     "overview": "Overview",
     "my_listings": "My Listings",
     "favorites": "Favorites",
+    "ai_assistant": "AI Assistant",
     "coins": "Coins & Subscriptions",
     "settings": "Settings",
     "post_listing": "Post a Listing",
@@ -139,6 +140,35 @@
     "actions": {
       "cancel": "Cancel",
       "save": "Save Changes"
+    }
+  },
+  "ai_assistant": {
+    "badge": "AI Assistant",
+    "title": "Property Assistant",
+    "subtitle": "Ask for personalized recommendations, budget guidance, and listing discovery help.",
+    "guest_title": "Sign in to continue",
+    "guest_description": "Your assistant can use your account context to tailor listing suggestions and conversations.",
+    "sign_in": "Sign in",
+    "chat_title": "Conversation",
+    "chat_description": "Describe what you need and the assistant will answer in context.",
+    "loading": "Loading conversation...",
+    "error": "Failed to load conversation.",
+    "empty_title": "Start your first chat",
+    "empty_description": "Try asking for neighborhoods, budget-friendly options, or rentals that match your family size.",
+    "placeholder": "Ask for help finding a property...",
+    "tip": "Include city, budget, rent or sale preference, and room count for better results.",
+    "sending": "Sending...",
+    "send": "Send",
+    "quick_title": "Quick prompts",
+    "quick_description": "Use one of these ideas to start the conversation faster.",
+    "help_title": "What it can do",
+    "help_1": "Suggest listings based on budget, location, and property type.",
+    "help_2": "Recommend alternatives when your first criteria are too narrow.",
+    "help_3": "Surface property cards directly in the conversation.",
+    "prompts": {
+      "family": "Show me family-friendly rentals in Oran under 60,000 DZD.",
+      "investment": "Find good investment apartments with 2 bedrooms.",
+      "short_stay": "I need a short stay listing near the city center."
     }
   }
 }

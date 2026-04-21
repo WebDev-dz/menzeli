@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bot,
   LayoutDashboard,
   Home,
   Heart,
   Coins,
-  Settings,
   PlusCircle,
   User,
 } from "lucide-react";
@@ -27,6 +27,7 @@ export function Sidebar({ locale }: SidebarProps) {
     { icon: LayoutDashboard, label: t("sidebar.overview"), href: `/${locale}/dashboard` },
     { icon: Home, label: t("sidebar.my_listings"), href: `/${locale}/dashboard/my-listings` },
     { icon: Heart, label: t("sidebar.favorites"), href: `/${locale}/dashboard/favorites` },
+    { icon: Bot, label: t("sidebar.ai_assistant", "AI Assistant"), href: `/${locale}/dashboard/ai-assistant` },
     { icon: Coins, label: t("sidebar.coins"), href: `/${locale}/dashboard/billing` },
     { icon: User, label: t("sidebar.profile"), href: `/${locale}/dashboard/profile` },
   ];

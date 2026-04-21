@@ -3,6 +3,7 @@
     "overview": "Vue d'ensemble",
     "my_listings": "Mes annonces",
     "favorites": "Favoris",
+    "ai_assistant": "Assistant IA",
     "coins": "Coins & Abonnements",
     "settings": "Paramètres",
     "post_listing": "Déposer une annonce",
@@ -139,6 +140,53 @@
     "actions": {
       "cancel": "Annuler",
       "save": "Enregistrer"
+    }
+  },
+  "billing": {
+    "error_title": "Impossible de charger les donnees de facturation",
+    "error_description": "Veuillez actualiser la page ou reessayer dans un instant.",
+    "title": "Facturation et portefeuille",
+    "subtitle": "Suivez le solde de votre portefeuille et consultez toutes les transactions.",
+    "wallet_badge": "Portefeuille",
+    "balance_label": "Solde actuel",
+    "balance_unit": "coins",
+    "summary_title": "Resume des transactions",
+    "summary_description": "Un apercu rapide de l'activite de votre portefeuille.",
+    "total_transactions": "Total des transactions",
+    "wallet_slug": "Identifiant du portefeuille",
+    "transactions_title": "Transactions du portefeuille",
+    "transactions_description": "Tous les depots et retraits lies a votre portefeuille.",
+    "empty": "Aucune transaction de portefeuille pour le moment.",
+    "no_reason": "Aucune raison fournie",
+    "no_method": "Aucun moyen de paiement"
+  },
+  "ai_assistant": {
+    "badge": "Assistant IA",
+    "title": "Assistant immobilier",
+    "subtitle": "Demandez des recommandations personnalisées, des conseils de budget et de l'aide pour trouver des annonces.",
+    "guest_title": "Connectez-vous pour continuer",
+    "guest_description": "Votre assistant peut utiliser le contexte de votre compte pour mieux adapter les suggestions et la conversation.",
+    "sign_in": "Se connecter",
+    "chat_title": "Conversation",
+    "chat_description": "Décrivez votre besoin et l'assistant vous répondra avec le bon contexte.",
+    "loading": "Chargement de la conversation...",
+    "error": "Impossible de charger la conversation.",
+    "empty_title": "Commencez votre première discussion",
+    "empty_description": "Essayez de demander des quartiers, des options selon votre budget ou des locations adaptées à votre famille.",
+    "placeholder": "Demandez de l'aide pour trouver un bien...",
+    "tip": "Indiquez la ville, le budget, location ou vente, ainsi que le nombre de pièces pour de meilleurs résultats.",
+    "sending": "Envoi...",
+    "send": "Envoyer",
+    "quick_title": "Suggestions rapides",
+    "quick_description": "Utilisez l'une de ces idées pour démarrer plus vite.",
+    "help_title": "Ce qu'il peut faire",
+    "help_1": "Suggérer des annonces selon le budget, la localisation et le type de bien.",
+    "help_2": "Proposer des alternatives quand vos critères sont trop limités.",
+    "help_3": "Afficher directement des cartes de biens dans la conversation.",
+    "prompts": {
+      "family": "Montre-moi des locations familiales à Oran à moins de 60 000 DZD.",
+      "investment": "Trouve de bons appartements d'investissement avec 2 chambres.",
+      "short_stay": "J'ai besoin d'une location courte durée près du centre-ville."
     }
   }
 }

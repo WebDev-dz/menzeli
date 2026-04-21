@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/providers/auth";
 import { Button } from "@/components/ui/button";
@@ -13,25 +13,25 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
   Check, 
-  Laptop, 
-  Smartphone, 
   Pencil, 
-  ShieldCheck, 
-  LogOut, 
-  Trash2,
-  Camera
+  Loader2,
 } from "lucide-react";
 import { API_URL } from "@/lib/api-config";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateProfile, updateProfileImage } = useAuth();
   const { t } = useTranslation("dashboard");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Initialize form with user data
   useEffect(() => {
@@ -39,9 +39,17 @@ export default function ProfilePage() {
       if ('name' in user) setName(user.name || "");
       if ('email' in user) setEmail(user.email || "");
       setPhone(user.phone || "");
-      console.log({user});
+      setImagePreview(null);
     }
   }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const getInitials = (name: string) => {
     return name
@@ -52,12 +60,67 @@ export default function ProfilePage() {
       .substring(0, 2);
   };
 
-  const getProfileImage = () => {
-    if (user && 'profileImage' in user && user.profileImage) {
-        if(user.profileImage.startsWith('http')) return user.profileImage;
-        return `${API_URL}${user.profileImage}`
+  const profileImageSrc = useMemo(() => {
+    if (imagePreview) return imagePreview;
+    if (user && "profileImage" in user && user.profileImage) {
+      if (user.profileImage.startsWith("http")) return user.profileImage;
+      return `${API_URL}${user.profileImage}`;
     }
     return undefined;
+  }, [imagePreview, user]);
+
+  const resetForm = () => {
+    if (!user) return;
+    if ("name" in user) setName(user.name || "");
+    if ("email" in user) setEmail(user.email || "");
+    setPhone(user.phone || "");
+    if (imagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSavingProfile(true);
+      await updateProfile({
+        name: name.trim(),
+        email: email.trim() || null,
+      });
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const nextPreview = URL.createObjectURL(file);
+    if (imagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(nextPreview);
+
+    try {
+      setIsUploadingImage(true);
+      await updateProfileImage(file);
+      toast.success("Profile image updated successfully");
+    } catch (error) {
+      URL.revokeObjectURL(nextPreview);
+      setImagePreview(null);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile image",
+      );
+    } finally {
+      event.target.value = "";
+      setIsUploadingImage(false);
+    }
   };
 
   return (
@@ -79,15 +142,32 @@ export default function ProfilePage() {
           {/* Avatar Section */}
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
             <div className="relative group">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
               <Avatar className="h-24 w-24 border-4 border-white shadow-sm">
-                <AvatarImage src={getProfileImage()} alt={name} />
+                <AvatarImage src={profileImageSrc} alt={name} />
                 <AvatarFallback className="text-xl bg-primary/10 text-primary">
                   {getInitials(name || "User")}
                 </AvatarFallback>
               </Avatar>
-              <button className="absolute bottom-0 right-0 rounded-full bg-primary p-1.5 text-white shadow-md hover:bg-primary/90 transition-colors">
-                <Pencil className="h-4 w-4" />
-              </button>
+              <Button
+                type="button"
+                size="icon"
+                className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Pencil className="h-4 w-4" />
+                )}
+              </Button>
             </div>
             <div className="flex-1 text-center sm:text-left">
               <h3 className="text-lg font-semibold">{name || "User"}</h3>
@@ -99,10 +179,30 @@ export default function ProfilePage() {
                 })}
               </p>
               <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-                <Button variant="default" size="sm">
-                  {t("profile_page.personal_info.change_photo")}
+                <Button
+                  variant="default"
+                  size="sm"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                >
+                  {isUploadingImage ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    t("profile_page.personal_info.change_photo")
+                  )}
                 </Button>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  className="text-destructive hover:text-destructive"
+                  onClick={resetForm}
+                  disabled={isSavingProfile || isUploadingImage}
+                >
                   {t("profile_page.personal_info.remove")}
                 </Button>
               </div>
@@ -149,6 +249,7 @@ export default function ProfilePage() {
                   onChange={(e) => setPhone(e.target.value)} 
                   placeholder="+1 (555) 000-1234"
                   className="pr-20"
+                  disabled
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-green-600 text-xs font-medium">
                   <Check className="h-3 w-3" />
@@ -238,8 +339,28 @@ export default function ProfilePage() {
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4">
-        <Button variant="ghost">{t("profile_page.actions.cancel")}</Button>
-        <Button>{t("profile_page.actions.save")}</Button>
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={resetForm}
+          disabled={isSavingProfile || isUploadingImage}
+        >
+          {t("profile_page.actions.cancel")}
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSaveProfile}
+          disabled={isSavingProfile || isUploadingImage || !name.trim()}
+        >
+          {isSavingProfile ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            t("profile_page.actions.save")
+          )}
+        </Button>
       </div>
     </div>
   );

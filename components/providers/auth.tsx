@@ -2,15 +2,25 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthApi, AuthCompleteProfileOperationRequest, AuthRequestOtp200Response, AuthRequestOtpOperationRequest, AuthVerifyOtp200Response, AuthVerifyOtpOperationRequest, ProfileApi, User, UserFromJSON } from "@/api";
-import { apiConfig, API_URL } from "@/lib/api-config";
+import {
+  AuthApi,
+  AuthCompleteProfileOperationRequest,
+  AuthRequestOtp200Response,
+  AuthRequestOtpOperationRequest,
+  AuthVerifyOtp200Response,
+  AuthVerifyOtpOperationRequest,
+  ProfileApi,
+  UpdateProfileRequest,
+  User,
+  UserFromJSON,
+} from "@/api";
+import { apiConfig } from "@/lib/api-config";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 // Initialize AuthApi with configuration to read token from localStorage
 const authApi = new AuthApi(apiConfig);
 const memberApi = new ProfileApi(apiConfig);
-
 
 interface AuthContextType {
   user: User | null | { phone: string };
@@ -20,6 +30,8 @@ interface AuthContextType {
   verifyOtp: (phone: string, otp: string) => Promise<AuthVerifyOtp200Response>;
   token: string | null;
   updateName: (name: string) => Promise<void>;
+  updateProfile: (data: UpdateProfileRequest) => Promise<void>;
+  updateProfileImage: (image: Blob) => Promise<void>;
   logout: () => void;
 }
 
@@ -44,6 +56,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setIsAuthenticated(false);
     router.push("/auth");
+  };
+
+  const syncUserState = (
+    profile: Pick<User, "name" | "email" | "phone" | "profileImage">,
+  ) => {
+    setUser((currentUser) => {
+      const nextUser = currentUser
+        ? {
+            ...currentUser,
+            name: profile.name,
+            email: profile.email,
+            phone: profile.phone,
+            profileImage: profile.profileImage,
+          }
+        : {
+            phone: profile.phone,
+            name: profile.name,
+            email: profile.email,
+            profileImage: profile.profileImage,
+          };
+
+      localStorage.setItem("user", JSON.stringify(nextUser));
+      return nextUser as User | { phone: string };
+    });
   };
 
   const { data: userData, isError , refetch} = useQuery({
@@ -72,8 +108,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (userData) {
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      syncUserState({
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        profileImage: userData.profileImage,
+      });
     }
   }, [userData]);
 
@@ -127,6 +167,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'Content-Type': 'application/json',
         },
       }),
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (request: UpdateProfileRequest) => {
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      return memberApi.profileUpdate(
+        { updateProfileRequest: request },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    },
+  });
+
+  const updateProfileImageMutation = useMutation({
+    mutationFn: (profileImage: Blob) => {
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      return memberApi.profileUpdateImage(
+        { profileImage },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+    },
   });
 
   const login = async (phone: string) => {
@@ -189,6 +264,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfile = async (data: UpdateProfileRequest) => {
+    try {
+      const response = await updateProfileMutation.mutateAsync(data);
+
+      if (response.data) {
+        syncUserState({
+          name: response.data.name,
+          email: response.data.email,
+          phone: response.data.phone,
+          profileImage: response.data.profileImage,
+        });
+      }
+    } catch (error) {
+      console.error("Update profile failed:", error);
+      throw error;
+    }
+  };
+
+  const updateProfileImage = async (image: Blob) => {
+    try {
+      const response = await updateProfileImageMutation.mutateAsync(image);
+
+      if (response.data) {
+        syncUserState({
+          name: response.data.name,
+          email: response.data.email,
+          phone: response.data.phone,
+          profileImage: response.data.profileImage,
+        });
+      }
+    } catch (error) {
+      console.error("Update profile image failed:", error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -199,6 +310,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         verifyOtp,
         updateName,
+        updateProfile,
+        updateProfileImage,
         logout,
       }}
     >
