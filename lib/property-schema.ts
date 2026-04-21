@@ -3,7 +3,15 @@ import { ListingsStoreRequest } from "@/api";
 import { ListingResource } from '../api/models/ListingResource';
 import { urlToFile } from './utils';
 
-const fileSchema = z.file();
+const fileSchema = z.any();
+ 
+fileSchema.check(
+  z.minSize(10_000), // minimum .size (bytes)
+  z.maxSize(1_000_000), // maximum .size (bytes)
+  z.mime(["image/png", "image/jpeg"])
+);
+
+
 
 export const formSchema: z.ZodType<ListingsStoreRequest, ListingsStoreRequest> = z.object({
   title: z.string().min(1, "Title is required"),

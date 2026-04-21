@@ -124,12 +124,12 @@ export default function PropertyDetails({ id }: Props) {
                 </div>
               )}
               {/* Boost badge */}
-              {property.boostLevel > 0 && (
+              {/* {property.boostLevel > 0 && (
                 <div className="absolute top-3 right-3 flex items-center gap-1 bg-amber-500 text-white rounded-full px-2 py-1 text-xs font-bold shadow">
                   <TrendingUp className="w-3 h-3" />
                   Featured
                 </div>
-              )}
+              )} */}
             </div>
             <div className="col-span-3 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-1">
               <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-muted">

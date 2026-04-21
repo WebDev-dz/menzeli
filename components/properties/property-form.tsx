@@ -229,7 +229,7 @@ export function PropertyForm({ type, listing }: Props) {
                           src={
                             typeof field.value === "string"
                               ? field.value
-                              : fileToUrl(field.value)
+                              : fileToUrl(field.value as File)
                           }
                           alt="Main cover"
                           className="object-cover w-full h-full"
@@ -258,10 +258,10 @@ export function PropertyForm({ type, listing }: Props) {
                     <FieldLabel>{t("property_gallery")}</FieldLabel>
                     <UploadThingImageGrid
                       value={field?.value?.map(
-                        (file: File, index: number) => ({
+                        (file: any, index: number) => ({
                           id: index.toString(),
-                          file: file,
-                          url: fileToUrl(file)
+                          file: file as File,
+                          url: fileToUrl(file as any)
                            
                         }),
                       )}
