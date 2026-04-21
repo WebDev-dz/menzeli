@@ -38,10 +38,10 @@ type Props = {
 };
 
 const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: Props) => {
-  const { t } = useTranslation("filters");
+  const { t, i18n } = useTranslation("filters");
   const { data: categories } = useCategories();
   const { data: propertyTypes } = usePropertyTypes();
-  const { data: rentDurations } = useRentDurations();
+  // const { data: rentDurations } = useRentDurations();
   const { data: wilayas } = useWilayas();
 
   return (
@@ -170,10 +170,10 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           <FormField
             control={form.control}
             name="minPrice"
-            render={({ field }) => (
+            render={({ field : { value , ...rest} }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  <Input type="number" placeholder="Min" {...field} />
+                  <Input type="number" placeholder="Min" {...rest} value = {value ?? 0} />
                 </FormControl>
               </FormItem>
             )}
@@ -182,10 +182,10 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           <FormField
             control={form.control}
             name="maxPrice"
-            render={({ field }) => (
+            render={({ field : { value , ...rest} }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  <Input type="number" placeholder="Max" {...field} />
+                  <Input type="number" placeholder="Max" {...rest} value = {value ?? 0} />
                 </FormControl>
               </FormItem>
             )}
@@ -194,7 +194,7 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
       </div>
 
       {/* Surface Range */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <FormLabel>{t("surface_range") || "Surface (m²)"}</FormLabel>
         <div className="flex items-center gap-2">
           <FormField
@@ -221,7 +221,7 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
             )}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Rooms & Persons */}
       <div className="grid grid-cols-2 gap-2">

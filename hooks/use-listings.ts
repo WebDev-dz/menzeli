@@ -10,13 +10,24 @@ import {
 } from "@/api";
 import { apiConfig } from "@/lib/api-config";
 import { useAuth } from '../components/providers/auth';
+import { useMemo } from "react";
 
 const listingApi = new ListingApi(apiConfig);
 
 export function useListings(params?: ListingsIndexRequest) {
+  console.log({ params })
+  const stableParams = useMemo(
+    () => params,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(params)]
+  );
   return useQuery({
-    queryKey: ["listings", params],
+    queryKey: ["listings", stableParams],
+    staleTime: 1000 * 60 * 5,      // ✅ 5 minutes (was 10000 * 60 * 5 = ~50min typo)
+    refetchInterval: false,         // ✅ remove — was causing repeated background fetches
+    enabled: true,                  // ✅ was false, so query never ran intentionally
     queryFn: async () => {
+     
       const response = await listingApi.index(params);
       return response;
     },

@@ -6,26 +6,9 @@ import RealEstateFilterPage from "@/components/properties/property-listing";
 import { ListingsIndexRequest } from "@/api";
 import z from "zod";
 
-export const listingsIndexRequestSchema = z.object({
-  perPage: z.coerce.number().optional(),
-  page: z.coerce.number().optional(),
-  typeId: z.coerce.number().optional(),
-  categoryId: z.coerce.number().optional(),
-  wilayaId: z.coerce.number().optional(),
-  cityId: z.coerce.number().optional(),
-  rentDurationId: z.coerce.number().optional(),
-  minPrice: z.coerce.number().optional(),
-  maxPrice: z.coerce.number().optional(),
-  minSurface: z.coerce.number().optional(),
-  maxSurface: z.coerce.number().optional(),
-  numberRooms: z.coerce.number().optional(),
-  numberPersons: z.coerce.number().optional(),
-  isReady: z.boolean().optional(),
-  isNegotiable: z.boolean().optional(),
-  search: z.string().optional().nullable(),
-  sortBy: z.enum(["price", "created_at", "surface"]).optional(),
-  sortDir: z.enum(["asc", "desc"]).optional(),
-});
+import { listingsIndexRequestSchema } from "@/components/properties/utils";
+
+
 
 export default async function ListingsPage({
   params,

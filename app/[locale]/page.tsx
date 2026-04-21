@@ -9,6 +9,7 @@ import Footer from "@/components/shared/footer";
 import ChatBotPopover from "@/components/shared/chat-bot-popover";
 import { ListingApi, ListingResource } from "@/api";
 import { apiConfig, API_URL } from "@/lib/api-config";
+import { SearchContent } from './content';
 
 export default async function Home({
   params,
@@ -21,6 +22,7 @@ export default async function Home({
   // Fetch featured listings (first 6)
   const listingApi = new ListingApi(apiConfig);
   let featuredListings: ListingResource[] = [];
+  
   try {
     const response = await listingApi.index({ perPage: 6 });
     featuredListings = response.data.listing;
@@ -60,72 +62,7 @@ export default async function Home({
               </p>
 
               {/* Search Bar */}
-              <div className="mx-auto mt-12 max-w-5xl rounded-2xl bg-white p-2 shadow-xl ring-1 ring-zinc-900/5 sm:rounded-full">
-                <form className="flex flex-col sm:flex-row items-center divide-y sm:divide-y-0 sm:divide-x divide-zinc-100">
-                  <div className="flex w-full items-center gap-3 px-6 py-4 sm:w-1/3">
-                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-blue-50">
-                      <Image
-                        src="/images/mmb90ocl-m8ds0i6.svg"
-                        alt="Location"
-                        width={20}
-                        height={20}
-                        className="text-blue-600"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder={t("hero.search.location")}
-                      className="w-full border-0 bg-transparent p-0 text-zinc-900 placeholder:text-zinc-400 focus:ring-0 sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="flex w-full items-center gap-3 px-6 py-4 sm:w-1/4">
-                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-blue-50">
-                      <Image
-                        src="/images/mmb90ocm-i8vdvdq.svg"
-                        alt="Type"
-                        width={20}
-                        height={20}
-                      />
-                    </div>
-                    <select className="w-full border-0 bg-transparent p-0 text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 appearance-none cursor-pointer">
-                      <option>{t("hero.search.type")}</option>
-                      <option>Apartment</option>
-                      <option>Villa</option>
-                      <option>Studio</option>
-                    </select>
-                  </div>
-                  <div className="flex w-full items-center gap-3 px-6 py-4 sm:w-1/4">
-                    <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-blue-50">
-                      <Image
-                        src="/images/mmb90ocm-tllla4r.svg"
-                        alt="Price"
-                        width={20}
-                        height={20}
-                      />
-                    </div>
-                    <input
-                      type="number"
-                      placeholder={t("hero.search.price")}
-                      className="w-full border-0 bg-transparent p-0 text-zinc-900 placeholder:text-zinc-400 focus:ring-0 sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="p-2 w-full sm:w-auto">
-                    <button
-                      type="submit"
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors sm:w-auto"
-                    >
-                      <Image
-                        src="/images/mmb90ocm-o8ka6yb.svg"
-                        alt="Search"
-                        width={16}
-                        height={16}
-                        className="invert brightness-0"
-                      />
-                      {t("hero.search.button")}
-                    </button>
-                  </div>
-                </form>
-              </div>
+              <SearchContent />
             </div>
 
             {/* Background decoration */}

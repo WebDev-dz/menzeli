@@ -8,6 +8,31 @@ import { isNotComplete, useAuth } from "@/components/providers/auth";
 import Header from "@/components/shared/header";
 import { useTranslation } from "react-i18next";
 import { ConfigSite } from "@/lib/conf";
+import { PhoneCountrySelect, PhoneInput, PhoneInputComponent } from "../ui/phone-input";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+
+const algerianPhoneSchema = z.object({
+  phone: z
+    .string()
+    .min(1, "Phone number is required")
+    .transform((val) => val.replace(/\s+/g, "").replace(/^0/, "")) // strip spaces & leading 0
+    .pipe(
+      z
+        .string()
+        .length(9, "Phone number must be 9 digits after the country code")
+        .regex(
+          /^[567]\d{8}$/,
+          "Must be a valid Algerian mobile number (05x / 06x / 07x)"
+        )
+    ),
+});
+
+type PhoneFormValues = z.infer<typeof algerianPhoneSchema>;
+// ───────────────────────────────────────────────────────────
+
 
 export default function AuthContent() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -23,6 +48,19 @@ export default function AuthContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callback_url");
   const { t } = useTranslation("auth");
+
+  // ── RHF for step 1 ──────────────────────────────────────
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    getValues,
+  } = useForm<PhoneFormValues>({
+    resolver: zodResolver(algerianPhoneSchema),
+    mode: "onBlur", // validate on blur; also on submit
+  });
+  // ────────────────────────────────────────────────────────
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -50,23 +88,25 @@ export default function AuthContent() {
     }
   }, [user, callbackUrl]);
 
-  const handleSendOTP = async () => {
-    if (phoneNumber.length >= 9) {
-      setLoading(true);
-      setError("");
-      try {
-         const response = await login(`+213${phoneNumber}`);
-         const otpCode = response.data.otpCode!
-        setStep(2);
-        setOtp(otpCode.split(''));
-        setTimer(119);
-      } catch (err) {
-        setError(t("step1.error_send"));
-      } finally {
-        setLoading(false);
-      }
+  // ── Step 1 submit (now driven by RHF) ───────────────────
+  const handleSendOTP = handleSubmit(async (data) => {
+    // data.phone is the validated, transformed 9-digit string
+    setPhoneNumber(data.phone);
+    setLoading(true);
+    setError("");
+    try {
+      const response = await login(`+213${data.phone}`);
+      const otpCode = response.data.otpCode!;
+      setStep(2);
+      setOtp(otpCode.split(""));
+      setTimer(119);
+    } catch (err) {
+      setError(t("step1.error_send"));
+    } finally {
+      setLoading(false);
     }
-  };
+  });
+  // ────────────────────────────────────────────────────────
 
   const handleVerifyOTP = async () => {
     const otpCode = otp.join("");
@@ -157,119 +197,106 @@ export default function AuthContent() {
         )}
 
         <div className="relative w-full max-w-md bg-white rounded-2xl border border-slate-100 shadow-xl p-8 sm:p-12 z-10">
-          {step === 1 ? (
-            /* Step 1: Phone Entry */
+           {step === 1 ? (
+            /* ── Step 1: Phone Entry ── */
             <div className="flex flex-col items-center">
               <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
-                <Image
-                  src="/images/mmb9j5ki-1t7umbv.svg"
-                  alt="Phone"
-                  width={20}
-                  height={28}
-                  className="text-blue-600"
-                />
+                <Image src="/images/mmb9j5ki-1t7umbv.svg" alt="Phone" width={20} height={28} />
               </div>
 
               <h1 className="text-3xl font-bold text-slate-900 mb-2 text-center">
                 {t("step1.title", { siteName: ConfigSite.siteName })}
               </h1>
-              <p className="text-slate-500 text-center mb-10">
-                {t("step1.subtitle")}
-              </p>
+              <p className="text-slate-500 text-center mb-10">{t("step1.subtitle")}</p>
 
+              {/* API-level error (network / server) */}
               {error && (
                 <div className="mb-4 w-full rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-100 text-center">
                   {error}
                 </div>
               )}
 
-              <div className="w-full space-y-4">
+              {/*
+                NOTE: use a plain <div> wrapper — the button calls
+                handleSubmit (RHF) directly via onClick, so no <form>
+                element is strictly required, but wrapping in <form
+                onSubmit={handleSendOTP}> and using type="submit" is
+                cleaner and enables Enter-key submission.
+              */}
+              <form onSubmit={handleSendOTP} className="w-full space-y-4" noValidate>
                 <div className="flex gap-3">
+                  {/* Country selector — locked to DZ */}
                   <div className="w-1/3">
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       {t("step1.country")}
                     </label>
-                    <div className="relative flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-4 w-5 overflow-hidden rounded-sm bg-slate-200 relative">
-                          {/* Algeria Flag Approximation */}
-                          <div className="absolute inset-y-0 left-0 w-1/3 bg-green-700"></div>
-                          <div className="absolute inset-y-0 right-0 w-1/3 bg-white"></div>{" "}
-                          {/* Middle is white */}
-                          <div className="absolute inset-y-0 right-0 w-1/3 bg-red-600 hidden"></div>{" "}
-                          {/* Wait, simplified flag */}
-                          {/* Using a simple div representation based on code provided */}
-                          <div className="h-full w-full flex">
-                            <div className="h-full w-1/2 bg-[#006233]"></div>
-                            <div className="h-full w-1/2 bg-white relative">
-                              <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 text-[8px] text-[#D21034]">
-                                ★
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <span className="font-semibold text-slate-900">
-                          +213
-                        </span>
-                      </div>
-                    </div>
+                    <PhoneCountrySelect
+                      disabled
+                      value="DZ"
+                      options={[{ value: "DZ", label: "DZ" }]}
+                      onChange={console.log}
+                    />
                   </div>
+
+                  {/* Phone field — registered with RHF */}
                   <div className="w-2/3">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-semibold text-slate-700 mb-2"
+                    >
                       {t("step1.phone_label")}
                     </label>
-                    <input
+                    <PhoneInputComponent
+                      id="phone"
                       type="tel"
-                      value={phoneNumber}
-                      onChange={(e) =>
-                        setPhoneNumber(e.target.value.replace(/\D/g, ""))
-                      }
-                      placeholder={t("step1.phone_placeholder")}
-                      className="w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      inputMode="numeric"
+                      placeholder={t("step1.phone_placeholder")} // e.g. "06 XX XX XX XX"
+                      {...register("phone")}
+                      aria-invalid={!!errors.phone}
+                      className={`w-full rounded-lg border px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition-colors ${
+                        errors.phone
+                          ? "border-red-400 focus:border-red-500 focus:ring-red-500 bg-red-50"
+                          : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+                      }`}
                     />
+                    {/* Inline Zod validation message */}
+                    {errors.phone && (
+                      <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                        <span aria-hidden>⚠</span>
+                        {errors.phone.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <button
-                  onClick={handleSendOTP}
-                  disabled={loading}
+                  type="submit"
+                  disabled={loading || isSubmitting}
                   className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-base font-bold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? t("step1.submitting") : t("step1.submit_button")}
-                  {!loading && (
-                    <Image
-                      src="/images/mmb9j5kj-q4w834g.svg"
-                      alt="Arrow"
-                      width={14}
-                      height={14}
-                    />
+                  {loading || isSubmitting ? t("step1.submitting") : t("step1.submit_button")}
+                  {!loading && !isSubmitting && (
+                    <Image className = "rtl:rotate-180" src="/images/mmb9j5kj-q4w834g.svg" alt="Arrow" width={14} height={14} />
                   )}
                 </button>
-              </div>
+              </form>
 
               <div className="mt-10 text-center text-xs text-slate-500">
                 <p>
-                  {t("step1.terms_prefix", {siteName: ConfigSite.siteName})}{" "}
-                  <Link
-                    href="#"
-                    className="font-semibold text-blue-600 hover:underline"
-                  >
+                  {t("step1.terms_prefix", { siteName: ConfigSite.siteName })}{" "}
+                  <Link href="#" className="font-semibold text-blue-600 hover:underline">
                     {t("step1.terms_link")}
                   </Link>{" "}
                   {t("step1.privacy_prefix")}
                 </p>
                 <div className="flex justify-center gap-1 mt-1">
-                  <Link
-                    href="#"
-                    className="font-semibold text-blue-600 hover:underline"
-                  >
+                  <Link href="#" className="font-semibold text-blue-600 hover:underline">
                     {t("step1.privacy_link")}
                   </Link>
                   .
                 </div>
               </div>
-            </div>
-          ) : step === 2 ? (
+            </div>) : step === 2 ? (
             /* Step 2: OTP Verification */
             <div className="flex flex-col items-center">
               <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
