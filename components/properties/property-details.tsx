@@ -30,6 +30,8 @@ import {
 import { useListing } from "@/hooks/use-listings";
 import { API_URL } from "@/lib/api-config";
 import { useTranslation } from "react-i18next";
+import { RelatedProperties } from "./related-properties";
+import { formatPrice } from "@/lib/utils";
 
 interface Props {
   id: number;
@@ -37,7 +39,7 @@ interface Props {
 
 export default function PropertyDetails({ id }: Props) {
   const { data: property, isLoading, error } = useListing(id);
-  const { t } = useTranslation("listings");
+  const { t, i18n : { language: locale } } = useTranslation("property-details");
 
   if (isLoading) {
     return (
@@ -50,42 +52,22 @@ export default function PropertyDetails({ id }: Props) {
   if (error || !property) {
     return (
       <div className="flex h-[50vh] items-center justify-center text-red-500">
-        Error loading property details
+        {t("state.error_loading")}
       </div>
     );
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "DZD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+    return new Date(dateStr).toLocaleDateString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-FR" : "en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   };
 
-  // Build image list: prefer images array, fallback to property.image
-  const allImages: string[] = [];
-  if (property.images && property.images.length > 0) {
-    property.images.forEach((img: any) =>
-      allImages.push(`${API_URL}/storage/${img.image}`)
-    );
-  } else if (property.image) {
-    allImages.push(`${API_URL}${property.image}`);
-  }
 
-  const mainImage = allImages[0] ?? null;
-  const secondImage = allImages[1] ?? null;
-  const thirdImage = allImages[2] ?? null;
-  const extraCount = allImages.length > 3 ? allImages.length - 3 : 0;
 
   const agent =
     property.members && property.members.length > 0
@@ -109,10 +91,10 @@ export default function PropertyDetails({ id }: Props) {
           {/* Image Gallery */}
           <div className="grid grid-cols-3 gap-3">
             <div className="relative col-span-3 aspect-4/3 overflow-hidden rounded-2xl md:col-span-2 bg-muted">
-              {mainImage ? (
-                <img src={mainImage} alt={property.title} className="object-cover w-full h-full" />
+              {property?.image ? (
+                <img src={`${API_URL}${property?.image}`} alt={property.title} className="object-cover w-full h-full" />
               ) : (
-                <ImagePlaceholder label="No image available" />
+                <ImagePlaceholder label={t("gallery.no_image")} />
               )}
               {/* Type badge */}
               {property.type && (
@@ -131,7 +113,7 @@ export default function PropertyDetails({ id }: Props) {
                 </div>
               )} */}
             </div>
-            <div className="col-span-3 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-1">
+            {/* <div className="col-span-3 grid grid-cols-2 gap-3 md:col-span-1 md:grid-cols-1">
               <div className="relative aspect-4/3 overflow-hidden rounded-2xl bg-muted">
                 {secondImage ? (
                   <img src={secondImage} alt={`${property.title} 2`} className="object-cover w-full h-full" />
@@ -151,7 +133,7 @@ export default function PropertyDetails({ id }: Props) {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Title / Price / Location */}
@@ -175,17 +157,17 @@ export default function PropertyDetails({ id }: Props) {
               </div>
               <div className="text-right shrink-0">
                 <div className="text-foreground text-3xl font-semibold whitespace-nowrap">
-                  {formatPrice(property.price)}
+                  {formatPrice(property.price, locale as "en")}
                 </div>
                 {property.rentDuration && (
                   <div className="text-muted-foreground text-sm flex items-center justify-end gap-1 mt-0.5">
                     <Timer className="w-3.5 h-3.5" />
-                    per {property.rentDuration.name}
+                    {t("price.per_duration", { duration: property.rentDuration.name })}
                   </div>
                 )}
                 {property.isNegotiable && (
                   <Badge variant="outline" className="mt-1 text-xs text-green-600 border-green-300">
-                    Negotiable
+                    {t("badges.negotiable")}
                   </Badge>
                 )}
               </div>
@@ -207,7 +189,7 @@ export default function PropertyDetails({ id }: Props) {
               {property.timePost && (
                 <div className="flex items-center gap-1.5">
                   <CalendarDays className="w-4 h-4" />
-                  <span>Posted {formatDate(property.timePost.toLocaleString().split("T")[0])}</span>
+                  <span>{t("meta.posted", { date: formatDate(property.timePost.toLocaleString().split("T")[0]) })}</span>
                 </div>
               )}
             </div>
@@ -219,28 +201,30 @@ export default function PropertyDetails({ id }: Props) {
               <div className="bg-muted/60 rounded-xl p-3 flex flex-col gap-1">
                 <Maximize className="w-4 h-4 text-muted-foreground" />
                 <span className="text-lg font-bold">{property.surface} m²</span>
-                <span className="text-xs text-muted-foreground">Surface</span>
+                <span className="text-xs text-muted-foreground">{t("stats.surface")}</span>
               </div>
             )}
             {property.numberRooms != null && (
               <div className="bg-muted/60 rounded-xl p-3 flex flex-col gap-1">
                 <Bed className="w-4 h-4 text-muted-foreground" />
                 <span className="text-lg font-bold">{property.numberRooms}</span>
-                <span className="text-xs text-muted-foreground">Room{property.numberRooms !== 1 ? "s" : ""}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t(property.numberRooms === 1 ? "stats.room" : "stats.rooms")}
+                </span>
               </div>
             )}
             {property.numberPersons != null && (
               <div className="bg-muted/60 rounded-xl p-3 flex flex-col gap-1">
                 <Users className="w-4 h-4 text-muted-foreground" />
                 <span className="text-lg font-bold">{property.numberPersons}</span>
-                <span className="text-xs text-muted-foreground">Max Persons</span>
+                <span className="text-xs text-muted-foreground">{t("stats.max_persons")}</span>
               </div>
             )}
             {property.floor != null && (
               <div className="bg-muted/60 rounded-xl p-3 flex flex-col gap-1">
                 <Layers className="w-4 h-4 text-muted-foreground" />
                 <span className="text-lg font-bold">{property.floor}</span>
-                <span className="text-xs text-muted-foreground">Floor</span>
+                <span className="text-xs text-muted-foreground">{t("stats.floor")}</span>
               </div>
             )}
           </div>
@@ -248,7 +232,7 @@ export default function PropertyDetails({ id }: Props) {
           {/* Description */}
           {property.description && (
             <div className="space-y-2">
-              <h2 className="text-foreground font-bold">Description</h2>
+              <h2 className="text-foreground font-bold">{t("sections.description")}</h2>
               <p className="text-muted-foreground leading-relaxed">{property.description}</p>
             </div>
           )}
@@ -256,7 +240,7 @@ export default function PropertyDetails({ id }: Props) {
           {/* Features / Amenities */}
           {property.features && property.features.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-foreground font-bold">{t("details.amenities")}</h2>
+              <h2 className="text-foreground font-bold">{t("sections.amenities")}</h2>
               <Card className="shadow-none">
                 <CardContent className="pt-4">
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -269,10 +253,10 @@ export default function PropertyDetails({ id }: Props) {
                           <img
                             src={`${API_URL}${feature.iconPath}`}
                             alt=""
-                            className="w-5 h-5 object-contain flex-shrink-0"
+                            className="w-5 h-5 object-contain shrink-0"
                           />
                         ) : (
-                          <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                          <Star className="w-4 h-4 text-amber-400 shrink-0" />
                         )}
                         <span className="font-medium">{feature.name}</span>
                       </div>
@@ -286,7 +270,7 @@ export default function PropertyDetails({ id }: Props) {
           {/* Near Places */}
           {property.nearPlaces && property.nearPlaces.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-foreground font-bold">Nearby Places</h2>
+              <h2 className="text-foreground font-bold">{t("sections.nearby_places")}</h2>
               <Card className="shadow-none">
                 <CardContent className="pt-4">
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -299,10 +283,10 @@ export default function PropertyDetails({ id }: Props) {
                           <img
                             src={`${API_URL}${place.iconPath}`}
                             alt=""
-                            className="w-5 h-5 object-contain flex-shrink-0"
+                            className="w-5 h-5 object-contain shrink-0"
                           />
                         ) : (
-                          <Navigation className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                          <Navigation className="w-4 h-4 text-blue-500 shrink-0" />
                         )}
                         <span className="font-medium">{place.name}</span>
                       </div>
@@ -315,17 +299,17 @@ export default function PropertyDetails({ id }: Props) {
 
           {/* Property Details */}
           <div className="space-y-4">
-            <h2 className="text-foreground font-bold">{t("details.areas_lot")}</h2>
+            <h2 className="text-foreground font-bold">{t("sections.property_details")}</h2>
             <Card className="shadow-none">
               <CardContent className="pt-4 divide-y text-sm [&_div]:flex [&_div]:items-center [&_div]:justify-between [&_div]:py-3">
                 <div>
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground">{t("details.status")}</span>
                   <Badge variant={property.isReady ? "default" : "secondary"} className="text-xs">
-                    {property.isReady ? t("filters.ready_to_move") : t("filters.under_construction")}
+                    {property.isReady ? t("status.ready_to_move") : t("status.under_construction")}
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Moderation</span>
+                  <span className="text-muted-foreground">{t("details.moderation")}</span>
                   <Badge
                     variant={property.moderationStatus === "approved" ? "default" : "outline"}
                     className="capitalize text-xs"
@@ -335,7 +319,7 @@ export default function PropertyDetails({ id }: Props) {
                 </div>
                 {property.location && (
                   <div>
-                    <span className="text-muted-foreground">Location</span>
+                    <span className="text-muted-foreground">{t("details.location")}</span>
                     <span className="font-medium text-right">
                       {property.location.city}, {property.location.wilaya}
                     </span>
@@ -344,46 +328,47 @@ export default function PropertyDetails({ id }: Props) {
 
                 {property.surface != null && (
                   <div>
-                    <span className="text-muted-foreground">Living Space</span>
+                    <span className="text-muted-foreground">{t("details.living_space")}</span>
                     <span className="font-medium">{property.surface} m²</span>
                   </div>
                 )}
                 {property.floor != null && (
                   <div>
-                    <span className="text-muted-foreground">Floor</span>
+                    <span className="text-muted-foreground">{t("details.floor")}</span>
                     <span className="font-medium">{property.floor}</span>
                   </div>
                 )}
                 {property.numberRooms != null && (
                   <div>
-                    <span className="text-muted-foreground">Rooms</span>
+                    <span className="text-muted-foreground">{t("details.rooms")}</span>
                     <span className="font-medium">{property.numberRooms}</span>
                   </div>
                 )}
                 {property.numberPersons != null && (
                   <div>
-                    <span className="text-muted-foreground">Max Persons</span>
+                    <span className="text-muted-foreground">{t("details.max_persons")}</span>
                     <span className="font-medium">{property.numberPersons}</span>
                   </div>
                 )}
                 {property.minDuration != null && (
                   <div>
-                    <span className="text-muted-foreground">Min. Duration</span>
+                    <span className="text-muted-foreground">{t("details.min_duration")}</span>
                     <span className="font-medium">
-                      {property.minDuration} {property.rentDuration?.name ?? "day"}
-                      {property.minDuration > 1 ? "s" : ""}
+                      {property.minDuration}{" "}
+                      {property.rentDuration?.name ??
+                        t(property.minDuration > 1 ? "labels.days" : "labels.day")}
                     </span>
                   </div>
                 )}
                 {property.rentDuration && (
                   <div>
-                    <span className="text-muted-foreground">Rent Duration</span>
+                    <span className="text-muted-foreground">{t("details.rent_duration")}</span>
                     <span className="font-medium">{property.rentDuration.name}</span>
                   </div>
                 )}
                 <div>
-                  <span className="text-muted-foreground">Negotiable</span>
-                  <span className="font-medium">{property.isNegotiable ? "Yes" : "No"}</span>
+                  <span className="text-muted-foreground">{t("details.negotiable")}</span>
+                  <span className="font-medium">{property.isNegotiable ? t("labels.yes") : t("labels.no")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -392,11 +377,11 @@ export default function PropertyDetails({ id }: Props) {
           {/* Map */}
           {property.location?.latitude && property.location?.longitude && (
             <div className="space-y-4">
-              <h2 className="text-foreground font-bold">Location</h2>
+              <h2 className="text-foreground font-bold">{t("sections.location")}</h2>
               <Card className="shadow-none overflow-hidden">
                 <div className="relative w-full h-64 rounded-xl overflow-hidden">
                   <iframe
-                    title="Property location"
+                    title={t("map.iframe_title")}
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -424,12 +409,14 @@ export default function PropertyDetails({ id }: Props) {
                     rel="noopener noreferrer"
                     className="text-primary hover:underline text-xs font-medium"
                   >
-                    Open in Maps ↗
+                    {t("map.open_in_maps")}
                   </a>
                 </CardContent>
               </Card>
             </div>
           )}
+
+          
         </div>
 
         {/* ── Sidebar ── */}
@@ -440,14 +427,14 @@ export default function PropertyDetails({ id }: Props) {
             <Card className="bg-muted/50 shadow-none">
               <CardContent className="space-y-5 pt-5">
                 <div className="flex items-start gap-4">
-                  <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-muted border">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-muted border">
                     <img
                       src={
                         agent.profileImage
                           ? `${API_URL}/storage/${agent.profileImage}`
                           : "/placeholder-avatar.png"
                       }
-                      alt={agent.name ?? "Agent"}
+                      alt={agent.name ?? t("agent.fallback_name")}
                       className="object-cover w-full h-full"
                     />
                   </div>
@@ -456,7 +443,7 @@ export default function PropertyDetails({ id }: Props) {
                     {agent.memberVerified && (
                       <div className="flex items-center gap-1 text-green-600 text-xs mt-0.5">
                         <CheckCircle2 className="w-3 h-3" />
-                        Verified Agent
+                        {t("agent.verified")}
                       </div>
                     )}
                   </div>
@@ -476,7 +463,7 @@ export default function PropertyDetails({ id }: Props) {
                     </div>
                   )}
                 </div>
-                <Button className="w-full">{t("details.view_property")}</Button>
+                <Button className="w-full">{t("agent.view_property")}</Button>
               </CardContent>
             </Card>
           )}
@@ -485,14 +472,14 @@ export default function PropertyDetails({ id }: Props) {
           {!agent && (
             <Card className="bg-muted/50 shadow-none">
               <CardContent className="pt-4 space-y-3 text-sm">
-                <h3 className="font-semibold">Listing Info</h3>
+                <h3 className="font-semibold">{t("agent.listing_info")}</h3>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">ID</span>
+                  <span className="text-muted-foreground">{t("agent.id")}</span>
                   <span className="font-medium">#{property.id}</span>
                 </div>
                 {property.type && (
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Type</span>
+                    <span className="text-muted-foreground">{t("agent.type")}</span>
                     <div className="flex items-center gap-1.5">
                       {property.type.iconPath && (
                         <img src={`${API_URL}${property.type.iconPath}`} alt="" className="w-4 h-4" />
@@ -508,27 +495,32 @@ export default function PropertyDetails({ id }: Props) {
           {/* Schedule Tour */}
           <Card className="bg-muted/50 shadow-none">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">{t("details.schedule_tour")}</CardTitle>
-              <CardDescription className="text-xs">{t("details.schedule_desc")}</CardDescription>
+              <CardTitle className="text-base">{t("schedule.title")}</CardTitle>
+              <CardDescription className="text-xs">{t("schedule.description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-xs">{t("details.property_id")}</Label>
+                <Label className="text-muted-foreground text-xs">{t("schedule.property_id")}</Label>
                 <Input value={property.id} readOnly className="bg-muted h-9 text-sm" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-xs">{t("details.property_name")}</Label>
+                <Label className="text-muted-foreground text-xs">{t("schedule.property_name")}</Label>
                 <Input value={property.title} readOnly className="bg-muted h-9 text-sm" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-xs">{t("details.full_name")}</Label>
-                <Input placeholder={t("details.enter_name")} className="h-9 text-sm" />
+                <Label className="text-muted-foreground text-xs">{t("schedule.full_name")}</Label>
+                <Input placeholder={t("schedule.enter_name")} className="h-9 text-sm" />
               </div>
-              <Button className="w-full">{t("details.schedule")}</Button>
+              <Button className="w-full">{t("schedule.submit")}</Button>
             </CardContent>
           </Card>
         </div>
       </div>
+      {/* Related Properties Section */}
+          <RelatedProperties 
+            currentPropertyId={property.id} 
+            wilayaId={Number(property.location?.wilayaCode)} 
+          />
     </div>
   );
 }

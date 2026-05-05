@@ -1,0 +1,76 @@
+{
+  "state": {
+    "error_loading": "Impossible de charger les details du bien"
+  },
+  "gallery": {
+    "no_image": "Aucune image disponible"
+  },
+  "price": {
+    "per_duration": "par {{duration}}"
+  },
+  "badges": {
+    "negotiable": "Negociable"
+  },
+  "meta": {
+    "posted": "Publie le {{date}}"
+  },
+  "stats": {
+    "surface": "Surface",
+    "room": "Piece",
+    "rooms": "Pieces",
+    "max_persons": "Personnes max",
+    "floor": "Etage"
+  },
+  "sections": {
+    "description": "Description",
+    "amenities": "Commodites",
+    "nearby_places": "Lieux a proximite",
+    "property_details": "Details du bien",
+    "location": "Emplacement"
+  },
+  "status": {
+    "ready_to_move": "Pret a emmenager",
+    "under_construction": "En construction"
+  },
+  "details": {
+    "status": "Statut",
+    "moderation": "Moderation",
+    "location": "Emplacement",
+    "living_space": "Surface habitable",
+    "floor": "Etage",
+    "rooms": "Pieces",
+    "max_persons": "Personnes max",
+    "min_duration": "Duree min.",
+    "rent_duration": "Duree de location",
+    "negotiable": "Negociable",
+    "office_phone": "Telephone du bureau",
+    "email": "E-mail"
+  },
+  "labels": {
+    "day": "jour",
+    "days": "jours",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "map": {
+    "iframe_title": "Emplacement du bien",
+    "open_in_maps": "Ouvrir dans Maps ↗"
+  },
+  "agent": {
+    "fallback_name": "Agent",
+    "verified": "Agent verifie",
+    "view_property": "Voir mon bien",
+    "listing_info": "Infos de l'annonce",
+    "id": "ID",
+    "type": "Type"
+  },
+  "schedule": {
+    "title": "Planifier une visite",
+    "description": "Decouvrez votre futur logement de pres et reservez une visite aujourd'hui.",
+    "property_id": "ID du bien",
+    "property_name": "Nom du bien",
+    "full_name": "Nom complet",
+    "enter_name": "Entrez votre nom complet",
+    "submit": "Planifier"
+  }
+}

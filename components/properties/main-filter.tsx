@@ -4,7 +4,6 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   FormField,
   FormItem,
@@ -24,7 +23,6 @@ import { PropertyFiltersValues } from "./property-filters";
 import {
   useCategories,
   usePropertyTypes,
-  useRentDurations,
   useWilayas,
 } from "@/hooks/use-details";
 import { DetailsCities200ResponseData } from "@/api";
@@ -33,16 +31,16 @@ type Props = {
   form: UseFormReturn<PropertyFiltersValues>;
   onSubmit: (data: PropertyFiltersValues) => void;
   resetFilters: () => void;
-  selectedWilaya?: number
-  cities?: DetailsCities200ResponseData 
+  selectedWilaya?: number;
+  cities?: DetailsCities200ResponseData;
 };
 
 const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: Props) => {
   const { t, i18n } = useTranslation("filters");
-  const { data: categories } = useCategories();
-  const { data: propertyTypes } = usePropertyTypes();
-  // const { data: rentDurations } = useRentDurations();
-  const { data: wilayas } = useWilayas();
+  
+  const { data: categories } = useCategories({ locale: i18n.language as "en" });
+  const { data: propertyTypes } = usePropertyTypes({ locale: i18n.language as "en" });
+  const { data: wilayas } = useWilayas({ locale: i18n.language as "en" });
 
   return (
     <div className="grid gap-4 py-4 px-4">
@@ -52,14 +50,11 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
         name="typeId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("property_type") || "Property Type"}</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value?.toString()}
-            >
+            <FormLabel>{t("property_type")}</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value?.toString()}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t("select_type")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -80,14 +75,11 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
         name="categoryId"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("category") || "Category"}</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value?.toString()}
-            >
+            <FormLabel>{t("category")}</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value?.toString()}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={t("select_category")} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -109,17 +101,17 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           name="wilayaId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("wilaya") || "Wilaya"}</FormLabel>
+              <FormLabel>{t("wilaya")}</FormLabel>
               <Select
                 onValueChange={(val) => {
                   field.onChange(val);
-                  form.setValue("cityId", undefined); // Reset city when wilaya changes
+                  form.setValue("cityId", undefined);
                 }}
                 value={field.value?.toString()}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Wilaya" />
+                    <SelectValue placeholder={t("select_wilaya")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -139,7 +131,7 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           name="cityId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("city") || "City"}</FormLabel>
+              <FormLabel>{t("city")}</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 value={field.value?.toString()}
@@ -147,7 +139,7 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="City" />
+                    <SelectValue placeholder={t("select_city")} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -165,15 +157,20 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
 
       {/* Price Range */}
       <div className="space-y-2">
-        <FormLabel>{t("price_range") || "Price Range"}</FormLabel>
+        <FormLabel>{t("price_range")}</FormLabel>
         <div className="flex items-center gap-2">
           <FormField
             control={form.control}
             name="minPrice"
-            render={({ field : { value , ...rest} }) => (
+            render={({ field: { value, ...rest } }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  <Input type="number" placeholder="Min" {...rest} value = {value ?? 0} />
+                  <Input
+                    type="number"
+                    placeholder={t("min")}
+                    {...rest}
+                    value={value ?? ""}
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -182,46 +179,21 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           <FormField
             control={form.control}
             name="maxPrice"
-            render={({ field : { value , ...rest} }) => (
+            render={({ field: { value, ...rest } }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  <Input type="number" placeholder="Max" {...rest} value = {value ?? 0} />
+                  <Input
+                    type="number"
+                    placeholder={t("max")}
+                    {...rest}
+                    value={value ?? ""}
+                  />
                 </FormControl>
               </FormItem>
             )}
           />
         </div>
       </div>
-
-      {/* Surface Range */}
-      {/* <div className="space-y-2">
-        <FormLabel>{t("surface_range") || "Surface (m²)"}</FormLabel>
-        <div className="flex items-center gap-2">
-          <FormField
-            control={form.control}
-            name="minSurface"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormControl>
-                  <Input type="number" placeholder="Min" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <span>-</span>
-          <FormField
-            control={form.control}
-            name="maxSurface"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormControl>
-                  <Input type="number" placeholder="Max" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
-      </div> */}
 
       {/* Rooms & Persons */}
       <div className="grid grid-cols-2 gap-2">
@@ -230,9 +202,9 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           name="numberRooms"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("rooms") || "Rooms"}</FormLabel>
+              <FormLabel>{t("rooms")}</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input type="number" placeholder={t("number_rooms_placeholder")} {...field} />
               </FormControl>
             </FormItem>
           )}
@@ -242,9 +214,9 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
           name="numberPersons"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("persons") || "Persons"}</FormLabel>
+              <FormLabel>{t("persons")}</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input type="number" placeholder={t("number_persons_placeholder")} {...field} />
               </FormControl>
             </FormItem>
           )}
@@ -252,20 +224,11 @@ const MainFilters = ({ form, onSubmit, resetFilters, selectedWilaya, cities }: P
       </div>
 
       <div className="flex gap-2 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex-1 "
-          onClick={resetFilters}
-        >
-          {t("reset") || "Reset"}
+        <Button type="button" variant="outline" className="flex-1" onClick={resetFilters}>
+          {t("reset")}
         </Button>
-        <Button
-          onClick={() => form.handleSubmit(onSubmit, console.error)()}
-          type="submit"
-          className="flex-1"
-        >
-          {t("apply") || "Apply Filters"}
+        <Button onClick={() => form.handleSubmit(onSubmit)()} type="submit" className="flex-1">
+          {t("apply_filters")}
         </Button>
       </div>
     </div>

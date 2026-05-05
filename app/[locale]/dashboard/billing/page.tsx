@@ -11,8 +11,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useWalletData } from "@/hooks/use-wallet";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,12 +20,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useWalletContext } from "@/components/providers/wallet-provider";
+import { PricingModal } from "@/components/shared/pricing-modal";
 
 const BillingPage = () => {
   const params = useParams<{ locale: string }>();
   const locale = Array.isArray(params?.locale) ? params.locale[0] : params?.locale || "en";
   const { t } = useTranslation("dashboard");
-  const { wallet, transactions } = useWalletData();
+  const { wallet, transactions } = useWalletContext();
 
   const walletData = wallet.data?.data;
   const transactionItems = transactions.data?.data ?? [];
@@ -93,9 +95,11 @@ const BillingPage = () => {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
                 <Wallet className="h-6 w-6" />
               </div>
-              <Badge className="border-none bg-white/20 text-white hover:bg-white/20">
-                {walletData?.name ?? t("billing.wallet_badge", "Wallet")}
-              </Badge>
+              <PricingModal>
+                <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 border-none font-semibold">
+                  {t("stats.top_up", "Top Up")}
+                </Button>
+              </PricingModal>
             </div>
 
             <div className="space-y-2">

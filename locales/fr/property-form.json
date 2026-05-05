@@ -29,6 +29,8 @@
   "select_wilaya": "Sélectionner Wilaya",
   "city": "Ville",
   "select_city": "Sélectionner Ville",
+  "exact_location": "Emplacement exact",
+  "exact_location_hint": "Cliquez sur la carte pour définir l'emplacement exact du bien",
   "street_address": "Adresse",
   "start_typing_address": "Commencez à taper l'adresse...",
   "map_view": "Aperçu de la Carte",

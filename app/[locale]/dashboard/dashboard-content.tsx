@@ -16,11 +16,28 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/components/providers/auth";
 import { useMemo } from 'react';
 import { User } from "@/api";
+import { useWalletContext } from "@/components/providers/wallet-provider";
+import { useMyListingsContext } from "@/components/providers/my-listings-provider";
+import { Loader2 } from "lucide-react";
 
 export function DashboardContent() {
   const { t } = useTranslation("dashboard");
   const { user: storedUser } = useAuth();
   const user = useMemo(() => storedUser, [storedUser]) as User;
+
+  const { data: listingsData, isLoading: listingsLoading } = useMyListingsContext();
+  const { wallet } = useWalletContext();
+
+  const activeListingsCount = useMemo(() => {
+    if (!listingsData?.data?.listing) return 0;
+    return listingsData.data.listing.filter(l => l.moderationStatus === "published").length;
+  }, [listingsData]);
+
+  const totalViews = useMemo(() => {
+    // For now, API doesn't return view counts on listings, so keeping it 0.
+    // If the API returns views per listing in the future, sum them up here.
+    return 0;
+  }, [listingsData]);
 
   // Helper to format date
   const formatDate = (dateInput?: string | Date | null) => {
@@ -87,7 +104,9 @@ export function DashboardContent() {
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-zinc-500">{t("stats.active_listings")}</p>
-              <h3 className="text-3xl font-bold text-zinc-900">12</h3>
+              <h3 className="text-3xl font-bold text-zinc-900">
+                {listingsLoading ? <Loader2 className="h-6 w-6 animate-spin text-zinc-400" /> : activeListingsCount}
+              </h3>
             </div>
           </CardContent>
         </Card>
@@ -105,7 +124,9 @@ export function DashboardContent() {
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-zinc-500">{t("stats.total_views")}</p>
-              <h3 className="text-3xl font-bold text-zinc-900">1,240</h3>
+              <h3 className="text-3xl font-bold text-zinc-900">
+                {listingsLoading ? <Loader2 className="h-6 w-6 animate-spin text-zinc-400" /> : totalViews.toLocaleString()}
+              </h3>
             </div>
           </CardContent>
         </Card>
@@ -129,7 +150,13 @@ export function DashboardContent() {
             <div className="mt-4">
               <p className="text-sm font-medium text-blue-100">{t("stats.coin_balance")}</p>
               <div className="flex items-baseline gap-2">
-                <h3 className="text-3xl font-bold">0</h3>
+                <h3 className="text-3xl font-bold">
+                  {wallet.isLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-blue-200" />
+                  ) : (
+                    wallet.data?.data?.balance?.toLocaleString() || 0
+                  )}
+                </h3>
                 <span className="text-sm text-blue-100">{t("stats.coins")}</span>
               </div>
             </div>

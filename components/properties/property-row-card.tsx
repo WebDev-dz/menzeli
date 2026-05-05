@@ -4,12 +4,13 @@ import { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Heart, Check } from "lucide-react";
+import { Loader2, Heart, Check, Star, Eye } from "lucide-react";
 import { useListings } from "@/hooks/use-listings";
 import { API_URL } from "@/lib/api-config";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { ApplicationModal } from "@/components/shared/application-modal";
 
 import Link from "next/link";
 import { FeatureResource, ListingResource } from "@/api";
@@ -19,6 +20,9 @@ type Props = {
     original: ListingResource;
     id: number;
     title: string;
+    ratingAvg: number;
+    reviewsCount: number;
+    views: number;
     location: string;
     price: number;
     pricePerSqFt: number;
@@ -90,13 +94,32 @@ const PropertyRowCard = ({ property }: Props) => {
           <div className="px-6 py-4">
             <div className="space-y-4">
               <div>
-                <Link href={`/listings/${property.id}`}>
-                  <h3 className="text-foreground text-lg font-semibold hover:text-primary transition-colors">
-                    {property.title}
-                  </h3>
-                </Link>
-                <p className="text-muted-foreground text-sm">
-                  {property.location}
+                <div className="flex items-start justify-between">
+                  <Link href={`/listings/${property.id}`}>
+                    <h3 className="text-foreground text-lg font-semibold hover:text-primary transition-colors">
+                      {property.title}
+                    </h3>
+                  </Link>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {property.views > 0 && (
+                      <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{property.views}</span>
+                      </div>
+                    )}
+                    {property.reviewsCount > 0 && (
+                      <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                          {property?.ratingAvg}
+                        </span>
+                        <span>({property.reviewsCount})</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-muted-foreground text-sm mt-1">
+                  {/* {property.location} */}
                 </p>
               </div>
 
@@ -164,9 +187,11 @@ const PropertyRowCard = ({ property }: Props) => {
               </p>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <Button className="w-full sm:w-auto">
-                  {t("contact_owner") || "Contact Owner"}
-                </Button>
+                <ApplicationModal>
+                  <Button className="w-full sm:w-auto">
+                    {t("contact_owner") || "Contact Owner"}
+                  </Button>
+                </ApplicationModal>
                 <div className="text-muted-foreground text-xs sm:text-right">
                   <p>
                     {t("posted_by").replace(

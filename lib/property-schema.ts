@@ -2,6 +2,7 @@ import * as z from "zod";
 import { ListingsStoreRequest } from "@/api";
 import { ListingResource } from '../api/models/ListingResource';
 import { urlToFile } from './utils';
+import { API_URL } from "./api-config";
 
 const fileSchema = z.any();
  
@@ -81,17 +82,18 @@ export const ListingToForm = async (listing: ListingResource) : Promise<Listings
           location: {
             latitude: Number(listing.location?.latitude),
             longitude: Number(listing.location?.longitude),
+          
             zipCode: listing.location?.zipCode || null,
             cityId: 0
           },
           isReady: listing.isReady || true,
           isNegotiable: listing.isNegotiable || false,
-          mainImage: await urlToFile(listing.image) || null,
+          mainImage: await urlToFile(`${API_URL}${listing.image}`) || null,
           rentDurationId: listing.rentDuration?.id || 1,
           typeId: listing.type?.id || 1,
           features: listing.features?.map((f) => f.id) || [],
           nearPlaces: listing.nearPlaces?.map((p) => p.id) || [],
-          images: await Promise.all(listing.images?.map((i) => urlToFile(i.image)) || []) || [],
+          images: await Promise.all(listing.images?.map((i) => urlToFile(`${API_URL}${i.image}`)) || []) || [],
         })
 
 export type PropertyFormValues = z.infer<typeof formSchema>;

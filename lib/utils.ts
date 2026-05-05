@@ -15,3 +15,13 @@ export const urlToFile = async (url: string): Promise<File> => {
   const filename = url.split("/").pop() || "file"
   return new File([blob], filename, { type: blob.type })
 }
+
+
+export const formatPrice = (price: number, locale: "ar" | "en" | "fr") => {
+    return new Intl.NumberFormat(locale === "ar" ? "ar-DZ" : "en-US", {
+      style: "currency",
+      currency: "DZD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };

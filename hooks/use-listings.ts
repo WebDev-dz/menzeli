@@ -1,16 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ListingApi,
   ListingResource,
   ListingResourceFromJSON,
-  ListingsStoreRequest,
-  ListingsUpdateRequest,
   ListingsIndexRequest,
- 
+  Report200Response,
+  ReportRequest,
 } from "@/api";
 import { apiConfig } from "@/lib/api-config";
-import { useAuth } from '../components/providers/auth';
+import { useAuth } from "../components/providers/auth";
 import { useMemo } from "react";
+import { useParams } from 'next/navigation';
 
 const listingApi = new ListingApi(apiConfig);
 
@@ -30,6 +30,25 @@ export function useListings(params?: ListingsIndexRequest) {
      
       const response = await listingApi.index(params);
       return response;
+    },
+  });
+}
+
+export function useReportListing() {
+  const { token } = useAuth();
+
+  return useMutation<Report200Response, unknown, ReportRequest>({
+    mutationFn: async (data) => {
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      return await listingApi.report(data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
     },
   });
 }
@@ -59,6 +78,7 @@ export function useListings(params?: ListingsIndexRequest) {
 // }
 
 export function useListing(id: number) {
+  const { locale } = useParams()
   return useQuery<ListingResource>({
     queryKey: ["listing", id],
     queryFn: async () => {
@@ -66,7 +86,10 @@ export function useListing(id: number) {
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-      };
+         "Accept-Language": locale as string
+           };
+
+
 
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;

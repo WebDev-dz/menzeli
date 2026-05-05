@@ -1,0 +1,76 @@
+{
+  "state": {
+    "error_loading": "Error loading property details"
+  },
+  "gallery": {
+    "no_image": "No image available"
+  },
+  "price": {
+    "per_duration": "per {{duration}}"
+  },
+  "badges": {
+    "negotiable": "Negotiable"
+  },
+  "meta": {
+    "posted": "Posted {{date}}"
+  },
+  "stats": {
+    "surface": "Surface",
+    "room": "Room",
+    "rooms": "Rooms",
+    "max_persons": "Max Persons",
+    "floor": "Floor"
+  },
+  "sections": {
+    "description": "Description",
+    "amenities": "Amenities",
+    "nearby_places": "Nearby Places",
+    "property_details": "Property Details",
+    "location": "Location"
+  },
+  "status": {
+    "ready_to_move": "Ready To Move",
+    "under_construction": "Under Construction"
+  },
+  "details": {
+    "status": "Status",
+    "moderation": "Moderation",
+    "location": "Location",
+    "living_space": "Living Space",
+    "floor": "Floor",
+    "rooms": "Rooms",
+    "max_persons": "Max Persons",
+    "min_duration": "Min. Duration",
+    "rent_duration": "Rent Duration",
+    "negotiable": "Negotiable",
+    "office_phone": "Office Phone",
+    "email": "Email"
+  },
+  "labels": {
+    "day": "day",
+    "days": "days",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "map": {
+    "iframe_title": "Property location",
+    "open_in_maps": "Open in Maps ↗"
+  },
+  "agent": {
+    "fallback_name": "Agent",
+    "verified": "Verified Agent",
+    "view_property": "View My Property",
+    "listing_info": "Listing Info",
+    "id": "ID",
+    "type": "Type"
+  },
+  "schedule": {
+    "title": "Schedule tour",
+    "description": "See your future home up close and book a tour today.",
+    "property_id": "Property ID",
+    "property_name": "Property Name",
+    "full_name": "Full Name",
+    "enter_name": "Enter your full name",
+    "submit": "Schedule"
+  }
+}

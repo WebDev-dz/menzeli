@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { NotificationResource } from './NotificationResource';
+import type { NotificationsIndex200ResponseData } from './NotificationsIndex200ResponseData';
 import {
-    NotificationResourceFromJSON,
-    NotificationResourceFromJSONTyped,
-    NotificationResourceToJSON,
-    NotificationResourceToJSONTyped,
-} from './NotificationResource';
+    NotificationsIndex200ResponseDataFromJSON,
+    NotificationsIndex200ResponseDataFromJSONTyped,
+    NotificationsIndex200ResponseDataToJSON,
+    NotificationsIndex200ResponseDataToJSONTyped,
+} from './NotificationsIndex200ResponseData';
 
 /**
  * 
@@ -35,10 +35,10 @@ export interface NotificationsIndex200Response {
     success: boolean;
     /**
      * 
-     * @type {Array<NotificationResource>}
+     * @type {NotificationsIndex200ResponseData}
      * @memberof NotificationsIndex200Response
      */
-    data: Array<NotificationResource>;
+    data: NotificationsIndex200ResponseData;
 }
 
 /**
@@ -61,7 +61,7 @@ export function NotificationsIndex200ResponseFromJSONTyped(json: any, ignoreDisc
     return {
         
         'success': json['success'],
-        'data': ((json['data'] as Array<any>).map(NotificationResourceFromJSON)),
+        'data': NotificationsIndex200ResponseDataFromJSON(json['data']),
     };
 }
 
@@ -77,7 +77,6 @@ export function NotificationsIndex200ResponseToJSONTyped(value?: NotificationsIn
     return {
         
         'success': value['success'],
-        'data': ((value['data'] as Array<any>).map(NotificationResourceToJSON)),
+        'data': NotificationsIndex200ResponseDataToJSON(value['data']),
     };
 }
-

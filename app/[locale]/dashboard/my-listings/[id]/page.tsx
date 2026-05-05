@@ -5,17 +5,17 @@ import { PropertyForm } from "@/components/properties/property-form";
 import { useListing } from "@/hooks/use-listings";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
-import initTranslations from "@/app/i18n";
 
 export default function EditListingPage() {
   const params = useParams();
   const id = Number(params.id);
+  const locale = params.locale as "ar" | "en" | "fr";
   const { data: listing, isLoading, error } = useListing(id);
   // Ensure translations are loaded if not already handled by a parent layout or provider
   // Since this is a client component, we rely on the provider.
   // But if the namespace isn't loaded, we might need to load it.
   // However, usually we load namespaces in the server component that renders this, or add it to the provider.
-  const { t } = useTranslation(["dashboard", "property-form"]);
+  const { t } = useTranslation("dashboard");
 
   if (isLoading) {
     return (
@@ -30,21 +30,21 @@ export default function EditListingPage() {
   }
 
   if (!listing) {
-    throw new Error("Listing not found");
+    throw new Error(t("listings.edit.not_found"));
   }
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-          Edit Property
+          {t("listings.edit.title")}
         </h1>
         <p className="text-sm text-zinc-500">
-          Update your property details and manage availability.
+          {t("listings.edit.subtitle")}
         </p>
       </div>
 
-      <PropertyForm type="edit" listing={listing} />
+      <PropertyForm locale = {locale} type="edit" listing={listing} />
     </div>
   );
 }

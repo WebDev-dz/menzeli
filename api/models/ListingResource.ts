@@ -202,6 +202,10 @@ export interface ListingResource {
      * @memberof ListingResource
      */
     images?: Array<ImagesResource>;
+
+    ratingAvg: number,
+    reviewsCount: number,
+    views: 0,
     /**
      * 
      * @type {Date}
@@ -262,6 +266,9 @@ export function ListingResourceFromJSONTyped(json: any, ignoreDiscriminator: boo
         'nearPlaces': json['near_places'] == null ? undefined : ((json['near_places'] as Array<any>).map(NearPlaceResourceFromJSON)),
         'members': json['members'] == null ? undefined : ((json['members'] as Array<any>).map(MemberResourceFromJSON)),
         'images': json['images'] == null ? undefined : ((json['images'] as Array<any>).map(ImagesResourceFromJSON)),
+        'ratingAvg': json['rating_avg'],
+        'reviewsCount': json['reviews_count'],
+        'views': json['views'],
         'timePost': (json['time_post'] == null ? null : new Date(json['time_post'])),
     };
 }

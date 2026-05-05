@@ -1,0 +1,76 @@
+{
+  "state": {
+    "error_loading": "تعذر تحميل تفاصيل العقار"
+  },
+  "gallery": {
+    "no_image": "لا توجد صورة متاحة"
+  },
+  "price": {
+    "per_duration": "لكل {{duration}}"
+  },
+  "badges": {
+    "negotiable": "قابل للتفاوض"
+  },
+  "meta": {
+    "posted": "نُشر في {{date}}"
+  },
+  "stats": {
+    "surface": "المساحة",
+    "room": "غرفة",
+    "rooms": "غرف",
+    "max_persons": "الحد الأقصى للأشخاص",
+    "floor": "الطابق"
+  },
+  "sections": {
+    "description": "الوصف",
+    "amenities": "المرافق",
+    "nearby_places": "الأماكن القريبة",
+    "property_details": "تفاصيل العقار",
+    "location": "الموقع"
+  },
+  "status": {
+    "ready_to_move": "جاهز للسكن",
+    "under_construction": "قيد الإنشاء"
+  },
+  "details": {
+    "status": "الحالة",
+    "moderation": "المراجعة",
+    "location": "الموقع",
+    "living_space": "المساحة المعيشية",
+    "floor": "الطابق",
+    "rooms": "الغرف",
+    "max_persons": "الحد الأقصى للأشخاص",
+    "min_duration": "أقل مدة",
+    "rent_duration": "مدة الإيجار",
+    "negotiable": "قابل للتفاوض",
+    "office_phone": "هاتف المكتب",
+    "email": "البريد الإلكتروني"
+  },
+  "labels": {
+    "day": "يوم",
+    "days": "أيام",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "map": {
+    "iframe_title": "موقع العقار",
+    "open_in_maps": "افتح في الخرائط ↗"
+  },
+  "agent": {
+    "fallback_name": "الوكيل",
+    "verified": "وكيل موثق",
+    "view_property": "عرض عقاري",
+    "listing_info": "معلومات الإعلان",
+    "id": "المعرف",
+    "type": "النوع"
+  },
+  "schedule": {
+    "title": "حجز جولة",
+    "description": "شاهد منزلك المستقبلي عن قرب واحجز جولة اليوم.",
+    "property_id": "معرف العقار",
+    "property_name": "اسم العقار",
+    "full_name": "الاسم الكامل",
+    "enter_name": "أدخل اسمك الكامل",
+    "submit": "حجز"
+  }
+}

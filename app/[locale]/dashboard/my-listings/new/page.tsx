@@ -28,7 +28,7 @@ export default async function NewListingPage({
       </div>
 
       {/* Form */}
-      <PropertyForm  />
+      <PropertyForm locale = {locale as "en"}  />
     </div>
   );
 }

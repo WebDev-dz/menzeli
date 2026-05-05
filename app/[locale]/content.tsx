@@ -12,12 +12,14 @@ import {
 import { useWilayas, usePropertyTypes } from '../../hooks/use-details';
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-type Props = {};
+type Props = {
+   locale : "ar" | "en" | "fr"
+};
 
-export const SearchContent = (props: Props) => {
+export const SearchContent = ({ locale }: Props) => {
     const { t } = useTranslation("common");
-    const { data: wilayas, isLoading: isLoadingWilayas } = useWilayas()
-    const { data: propertyTypes, isLoading: isLoadingPropertyTypes } = usePropertyTypes()
+    const { data: wilayas, isLoading: isLoadingWilayas } = useWilayas({locale})
+    const { data: propertyTypes, isLoading: isLoadingPropertyTypes } = usePropertyTypes({locale})
     const [selectedWilayaId, setSelectedWilayaId] = useState("")
     const [selectedPropertyTypeId, setSelectedPropertyTypeId] = useState("")
     const [maxPrice, setMaxPrice] = useState<number>()

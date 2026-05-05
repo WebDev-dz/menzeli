@@ -10,10 +10,13 @@ import {
   Coins,
   PlusCircle,
   User,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { ConfigSite } from "@/lib/conf";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   locale: string;
@@ -22,6 +25,7 @@ interface SidebarProps {
 export function Sidebar({ locale }: SidebarProps) {
   const { t } = useTranslation("dashboard");
   const pathname = usePathname();
+  const { open, openMobile, setOpenMobile, isMobile } = useSidebar();
 
   const navItems = [
     { icon: LayoutDashboard, label: t("sidebar.overview"), href: `/${locale}/dashboard` },
@@ -29,6 +33,7 @@ export function Sidebar({ locale }: SidebarProps) {
     { icon: Heart, label: t("sidebar.favorites"), href: `/${locale}/dashboard/favorites` },
     { icon: Bot, label: t("sidebar.ai_assistant", "AI Assistant"), href: `/${locale}/dashboard/ai-assistant` },
     { icon: Coins, label: t("sidebar.coins"), href: `/${locale}/dashboard/billing` },
+    { icon: Bell, label: t("sidebar.notifications"), href: `/${locale}/dashboard/notifications` },
     { icon: User, label: t("sidebar.profile"), href: `/${locale}/dashboard/profile` },
   ];
 
@@ -40,7 +45,21 @@ export function Sidebar({ locale }: SidebarProps) {
   };
 
   return (
-    <aside className="fixed inset-y-0 start-0 z-50 hidden w-64 flex-col border-e border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 lg:flex">
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isMobile && openMobile && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 transition-opacity"
+          onClick={() => setOpenMobile(false)}
+        />
+      )}
+
+      <aside
+        className={cn(
+          "fixed inset-y-0 start-0 z-50 flex w-64 flex-col border-e border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 transition-transform duration-300 ease-in-out lg:translate-x-0",
+          isMobile && !openMobile ? "-translate-x-full rtl:translate-x-full" : "translate-x-0"
+        )}
+      >
       {/* Header */}
       <Link href="#"  >
       <div className="flex h-16 items-center gap-3 px-6 border-b border-zinc-100 dark:border-zinc-800">
@@ -94,6 +113,7 @@ export function Sidebar({ locale }: SidebarProps) {
           {t("sidebar.post_listing")}
         </Button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

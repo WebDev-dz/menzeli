@@ -29,6 +29,8 @@
   "select_wilaya": "اختر الولاية",
   "city": "المدينة",
   "select_city": "اختر المدينة",
+  "exact_location": "الموقع الدقيق",
+  "exact_location_hint": "انقر على الخريطة لتحديد الموقع الدقيق للعقار",
   "street_address": "عنوان الشارع",
   "start_typing_address": "ابدأ بكتابة العنوان...",
   "map_view": "عنصر نائب لعرض الخريطة",

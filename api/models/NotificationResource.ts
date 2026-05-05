@@ -45,37 +45,29 @@ export interface NotificationResource {
     isRead: boolean;
     /**
      * 
+     * @type {string}
+     * @memberof NotificationResource
+     */
+    icon: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof NotificationResource
+     */
+    referenceType: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof NotificationResource
+     */
+    referenceId: number | null;
+    /**
+     * 
      * @type {Date}
      * @memberof NotificationResource
      */
     createdAt: Date;
-    /**
-     * Type of action (e.g: listing_created, new_message, etc.)
-     * @type {NotificationResourceActionTypeEnum}
-     * @memberof NotificationResource
-     */
-    actionType: NotificationResourceActionTypeEnum;
-    /**
-     * ID of the related resource (e.g: listing id)
-     * @type {number}
-     * @memberof NotificationResource
-     */
-    actionId?: number | null;
 }
-
-
-/**
- * @export
- */
-export const NotificationResourceActionTypeEnum = {
-    ListingCreated: 'listing_created',
-    NewMessage: 'new_message',
-    ReviewReceived: 'review_received',
-    SubscriptionExpired: 'subscription_expired',
-    BoostApproved: 'boost_approved'
-} as const;
-export type NotificationResourceActionTypeEnum = typeof NotificationResourceActionTypeEnum[keyof typeof NotificationResourceActionTypeEnum];
-
 
 /**
  * Check if a given object implements the NotificationResource interface.
@@ -85,8 +77,10 @@ export function instanceOfNotificationResource(value: object): value is Notifica
     if (!('title' in value) || value['title'] === undefined) return false;
     if (!('body' in value) || value['body'] === undefined) return false;
     if (!('isRead' in value) || value['isRead'] === undefined) return false;
+    if (!('icon' in value) || value['icon'] === undefined) return false;
+    if (!('referenceType' in value) || value['referenceType'] === undefined) return false;
+    if (!('referenceId' in value) || value['referenceId'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('actionType' in value) || value['actionType'] === undefined) return false;
     return true;
 }
 
@@ -104,9 +98,10 @@ export function NotificationResourceFromJSONTyped(json: any, ignoreDiscriminator
         'title': json['title'],
         'body': json['body'],
         'isRead': json['is_read'],
+        'icon': json['icon'],
+        'referenceType': json['reference_type'],
+        'referenceId': json['reference_id'],
         'createdAt': (new Date(json['created_at'])),
-        'actionType': json['action_type'],
-        'actionId': json['action_id'] == null ? undefined : json['action_id'],
     };
 }
 
@@ -125,9 +120,9 @@ export function NotificationResourceToJSONTyped(value?: NotificationResource | n
         'title': value['title'],
         'body': value['body'],
         'is_read': value['isRead'],
+        'icon': value['icon'],
+        'reference_type': value['referenceType'],
+        'reference_id': value['referenceId'],
         'created_at': value['createdAt'].toISOString(),
-        'action_type': value['actionType'],
-        'action_id': value['actionId'],
     };
 }
-

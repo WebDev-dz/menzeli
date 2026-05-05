@@ -212,11 +212,7 @@ export function UploadThingImageGrid({
         )}
       </div>
 
-      {value.length === 0 && !isUploading && (
-        <p className="text-sm text-muted-foreground text-center mt-4">
-          Click the + button to add images
-        </p>
-      )}
+     
     </div>
   );
 }

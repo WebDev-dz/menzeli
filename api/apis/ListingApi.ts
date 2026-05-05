@@ -16,16 +16,12 @@
 import * as runtime from '../runtime';
 import type {
   Index200Response,
-  InlineObject,
   Show200Response,
 } from '../models/index';
 import {
     Index200ResponseFromJSON,
-    Index200ResponseToJSON,
-    InlineObjectFromJSON,
-    InlineObjectToJSON,
+
     Show200ResponseFromJSON,
-    Show200ResponseToJSON,
 } from '../models/index';
 
 export interface IndexRequest {
@@ -54,6 +50,29 @@ export interface IndexRequest {
 
 export interface ShowRequest {
     listing: number;
+}
+
+export interface ReportRequest {
+    listing: number;
+    report: string
+}
+
+
+export type Report200Response = {
+    success: true;
+    message: string | null;
+}
+export type Report401Response = {
+    success: false;
+    message: string 
+}
+export type Report422Response = {
+    success: false;
+    message: string 
+}
+export type Report404Response = {
+    success: false;
+    message: string | null;
 }
 
 /**
@@ -220,6 +239,51 @@ export class ListingApi extends runtime.BaseAPI {
      */
     async show(requestParameters: ShowRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Show200Response> {
         const response = await this.showRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    async reportRequestOpts(requestParameters: ReportRequest): Promise<runtime.RequestOpts> {
+        if (requestParameters['listing'] == null) {
+            throw new runtime.RequiredError(
+                'listing',
+                'Required parameter "listing" was null or undefined when calling report().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/listings/{listing}`;
+        urlPath = urlPath.replace(`{${"listing"}}`, encodeURIComponent(String(requestParameters['listing'])));
+
+        return {
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            body: {
+                report : requestParameters["report"]
+            }
+        };
+    }
+
+    /**
+     */
+    async reportRaw(requestParameters: ReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Report200Response>> {
+        const requestOptions = await this.reportRequestOpts(requestParameters);
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => {
+            if (jsonValue == null) return jsonValue
+            else return jsonValue
+        });
+    }
+
+    /**
+     */
+    async report(requestParameters: ReportRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Report200Response> {
+        const response = await this.reportRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

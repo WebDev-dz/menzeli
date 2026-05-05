@@ -12,20 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { ListingResource } from './ListingResource';
 import {
     ListingResourceFromJSON,
-    ListingResourceFromJSONTyped,
     ListingResourceToJSON,
-    ListingResourceToJSONTyped,
 } from './ListingResource';
 import type { AuthRequestOtp403ResponseMessage } from './AuthRequestOtp403ResponseMessage';
 import {
     AuthRequestOtp403ResponseMessageFromJSON,
-    AuthRequestOtp403ResponseMessageFromJSONTyped,
     AuthRequestOtp403ResponseMessageToJSON,
-    AuthRequestOtp403ResponseMessageToJSONTyped,
 } from './AuthRequestOtp403ResponseMessage';
 
 /**

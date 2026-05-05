@@ -31,6 +31,10 @@ import {
     ReportsStore200ResponseToJSON,
 } from '../models/index';
 
+export interface NotificationsIndexRequest {
+    page?: number;
+}
+
 export interface NotificationsMarkAsReadRequest {
     id: string;
 }
@@ -47,8 +51,12 @@ export class NotificationsApi extends runtime.BaseAPI {
     /**
      * Creates request options for notificationsIndex without sending the request
      */
-    async notificationsIndexRequestOpts(): Promise<runtime.RequestOpts> {
+    async notificationsIndexRequestOpts(requestParameters: NotificationsIndexRequest = {}): Promise<runtime.RequestOpts> {
         const queryParameters: any = {};
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -75,8 +83,8 @@ export class NotificationsApi extends runtime.BaseAPI {
      * Returns notifications including action details for navigation (e.g., go to listing when clicked)
      * Get all user notifications
      */
-    async notificationsIndexRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationsIndex200Response>> {
-        const requestOptions = await this.notificationsIndexRequestOpts();
+    async notificationsIndexRaw(requestParameters: NotificationsIndexRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<NotificationsIndex200Response>> {
+        const requestOptions = await this.notificationsIndexRequestOpts(requestParameters);
         const response = await this.request(requestOptions, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => NotificationsIndex200ResponseFromJSON(jsonValue));
@@ -86,8 +94,8 @@ export class NotificationsApi extends runtime.BaseAPI {
      * Returns notifications including action details for navigation (e.g., go to listing when clicked)
      * Get all user notifications
      */
-    async notificationsIndex(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationsIndex200Response> {
-        const response = await this.notificationsIndexRaw(initOverrides);
+    async getNotifications(requestParameters: NotificationsIndexRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<NotificationsIndex200Response> {
+        const response = await this.notificationsIndexRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

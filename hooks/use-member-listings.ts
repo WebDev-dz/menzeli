@@ -43,7 +43,8 @@ function buildListingFormData(data: ListingsStoreRequest) {
 
   appendIfPresent(formData, "description", data.description);
   appendIfPresent(formData, "floor", data.floor);
-  appendIfPresent(formData, "boost_level", data.boostLevel);
+  const boost_level = data.boostLevel && Number(data.boostLevel) >= 1 ? data.boostLevel : 1
+  appendIfPresent(formData, "boost_level", boost_level);
   appendIfPresent(formData, "min_duration", data.minDuration);
   appendIfPresent(formData, "number_rooms", data.numberRooms);
   appendIfPresent(formData, "number_persons", data.numberPersons);
@@ -109,6 +110,8 @@ export function useCreateMemberListing() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Accept-Language": "en",
           Origin: API_URL,
         },
         redirect: "manual", // Don't follow — expose the 302

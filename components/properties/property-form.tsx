@@ -1,6 +1,11 @@
 "use client";
 import * as z from "zod";
-import { defaultProperty, formSchema, ListingToForm, PropertyFormValues } from "@/lib/property-schema";
+import {
+  defaultProperty,
+  formSchema,
+  ListingToForm,
+  PropertyFormValues,
+} from "@/lib/property-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { motion } from "motion/react";
@@ -52,23 +57,27 @@ import { useRouter } from "next/navigation";
 import { ListingResource } from "@/api";
 import { fileToUrl, urlToFile } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import LocationPicker from "../location-picker";
 
 type Props = {
   type?: "edit";
+  locale: "ar" | "en" | "fr";
   listing?: ListingResource;
 };
 
-export function PropertyForm({ type, listing }: Props) {
-  const { t, i18n } = useTranslation("property-form");
-  const { data: propertyTypes } = usePropertyTypes();
-  const { data: rentDurations } = useRentDurations();
-  const { data: features } = useFeatures();
-  const { data: nearPlaces } = useNearPlaces();
-  const { data: wilayas } = useWilayas();
+export function PropertyForm({ type, listing, locale = "en" }: Props) {
+  const { t } = useTranslation("property-form");
+  const { data: propertyTypes } = usePropertyTypes({ locale });
+  const { data: rentDurations } = useRentDurations({ locale });
+  const { data: features } = useFeatures({ locale });
+  const { data: nearPlaces } = useNearPlaces({ locale });
+  const { data: wilayas } = useWilayas({ locale });
 
   const [selectedWilaya, setSelectedWilaya] = useState<number | undefined>();
-  const { data: cities, isLoading: loadingCities } = useCities(selectedWilaya);
-
+  const { data: cities, isLoading: loadingCities, refetch: refetchCities } = useCities(
+    selectedWilaya,
+    locale,
+  );
 
   const { mutateAsync: createListing, status: createStatus } =
     useCreateMemberListing();
@@ -96,30 +105,30 @@ export function PropertyForm({ type, listing }: Props) {
       console.log("listing", listing);
       // Set selected wilaya to trigger city loading
       const loadForm = async () => {
-       const listingForm = await ListingToForm(listing);
+        const listingForm = await ListingToForm(listing);
         reset(listingForm);
         const wilayaCode = listing?.location?.wilayaCode || 0;
+        console.log({wilayaCode})
         setSelectedWilaya(Number(wilayaCode));
-        
+        refetchCities();
+        // Set cityId
       };
 
       loadForm();
     }
   }, []);
 
+  useEffect(() => {
+    if (selectedWilaya && cities) {
+    const city = cities?.cities?.find(
+      (city) => city.name === listing?.location?.city,
+    );
+    console.log({ city });
+    setValue("location.cityId", city?.id || 0);
 
-
-  useEffect(()=>{
-        const cityName = listing?.location?.city || "";
-        const city = cities?.cities?.find((city) => city.name == cityName)
-        console.log({ city })
-        const cityId = cities?.cities.find((city) => city.name === cityName)?.id || 0;
-        setValue("location.cityId", cityId);
-        console.log("cityId", cityId);
-        console.log(listing)
-  },[selectedWilaya])
-
-
+    setValue("location.cityId", city?.id || 0);
+     }
+  }, [selectedWilaya, cities, listing]);
 
   const onSubmit = async (data: PropertyFormValues) => {
     try {
@@ -139,15 +148,11 @@ export function PropertyForm({ type, listing }: Props) {
         toast.success(t("success_create"));
       }
 
-      router.push("/dashboard/my-listings");
+      // router.push("/dashboard/my-listings");
       form.reset();
     } catch (error) {
       console.error("Submission error:", error);
-      toast.error(
-        type === "edit"
-          ? t("error_update")
-          : t("error_create"),
-      );
+      toast.error(type === "edit" ? t("error_update") : t("error_create"));
     }
   };
 
@@ -217,32 +222,14 @@ export function PropertyForm({ type, listing }: Props) {
                     <FieldLabel>{t("main_cover_image")}</FieldLabel>
                     <UploadThingDropzone
                       onSelect={(files) => {
-                        field.onChange(files[0]);
+                        field.onChange(files?.length ? files[0] : null);
                       }}
+                      file={field.value as File}
                       accept="image/png, image/jpeg, image/gif"
                       maxFiles={1}
                       maxSize={5242880}
                     />
-                    {field.value && (
-                      <div className="mt-2 relative aspect-video rounded-lg overflow-hidden border">
-                        <img
-                          src={
-                            typeof field.value === "string"
-                              ? field.value
-                              : fileToUrl(field.value as File)
-                          }
-                          alt="Main cover"
-                          className="object-cover w-full h-full"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => field.onChange("")}
-                          className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+
                     <FieldError errors={[fieldState.error]} />
                   </Field>
                 </div>
@@ -257,28 +244,22 @@ export function PropertyForm({ type, listing }: Props) {
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>{t("property_gallery")}</FieldLabel>
                     <UploadThingImageGrid
-                      value={field?.value?.map(
-                        (file: any, index: number) => ({
-                          id: index.toString(),
-                          file: file as File,
-                          url: fileToUrl(file as any)
-                           
-                        }),
-                      )}
+                      value={field?.value?.map((file: any, index: number) => ({
+                        id: index.toString(),
+                        file: file as File,
+                        url: fileToUrl(file as any),
+                      }))}
                       onChange={(images) =>
                         field.onChange(images.map((img) => img.file))
                       }
                       onUpload={async (files) => {
                         const urls = files.map(fileToUrl);
                         form.setValue("images", files);
-                        // We shouldn't set form value here directly if onChange handles it
-                        // But we want to keep the File objects if possible for submission?
-                        // If we convert to strings in onChange, we lose the File objects.
-                        // For now, let's stick to the fix for rendering.
+    
                         return urls.map((url, index) => ({
                           id: index.toString(),
                           url,
-                          file: files[index]
+                          file: files[index],
                         }));
                       }}
                       maxImages={10}
@@ -293,9 +274,7 @@ export function PropertyForm({ type, listing }: Props) {
             />
           </div>
         </div>
-
         <FieldSeparator />
-
         {/* Section 2: Basic Information */}
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -329,7 +308,9 @@ export function PropertyForm({ type, listing }: Props) {
               control={control}
               render={({ field: { value, ...rest }, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="description">{t("description")}</FieldLabel>
+                  <FieldLabel htmlFor="description">
+                    {t("description")}
+                  </FieldLabel>
                   <Textarea
                     value={value || ""}
                     {...rest}
@@ -348,7 +329,9 @@ export function PropertyForm({ type, listing }: Props) {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="typeId">{t("property_type")}</FieldLabel>
+                    <FieldLabel htmlFor="typeId">
+                      {t("property_type")}
+                    </FieldLabel>
                     <Select
                       value={field.value?.toString()}
                       onValueChange={(val) => field.onChange(parseInt(val))}
@@ -402,9 +385,7 @@ export function PropertyForm({ type, listing }: Props) {
             </div>
           </div>
         </div>
-
         <FieldSeparator />
-
         {/* Section 3: Specifications */}
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -475,7 +456,9 @@ export function PropertyForm({ type, listing }: Props) {
               control={control}
               render={({ field: { value, onChange, ...rest }, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="numberPersons">{t("capacity")}</FieldLabel>
+                  <FieldLabel htmlFor="numberPersons">
+                    {t("capacity")}
+                  </FieldLabel>
                   <Input
                     value={value ? value.toString() : undefined}
                     id="numberPersons"
@@ -489,9 +472,7 @@ export function PropertyForm({ type, listing }: Props) {
             />
           </div>
         </div>
-
         <FieldSeparator />
-
         {/* Section 4: Pricing & Availability */}
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -524,7 +505,10 @@ export function PropertyForm({ type, listing }: Props) {
               <Controller
                 name="minDuration"
                 control={control}
-                render={({ field: { value, onChange, ...rest }, fieldState }) => (
+                render={({
+                  field: { value, onChange, ...rest },
+                  fieldState,
+                }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel htmlFor="min_duration">
                       {t("min_duration")}
@@ -579,9 +563,7 @@ export function PropertyForm({ type, listing }: Props) {
             </div>
           </div>
         </div>
-
         <FieldSeparator />
-
         {/* Section 5: Features & Amenities */}
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -631,10 +613,8 @@ export function PropertyForm({ type, listing }: Props) {
             ))}
           </div>
         </div>
-
         <FieldSeparator />
-
-        {/* Section 6: Location & Surroundings */}
+        {/* // ─── Section 6: Location & Surroundings */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
@@ -646,6 +626,7 @@ export function PropertyForm({ type, listing }: Props) {
           </div>
 
           <div className="space-y-6">
+            {/* Nearby points */}
             <div>
               <FieldLabel className="mb-3 block">
                 {t("nearby_points")}
@@ -663,19 +644,17 @@ export function PropertyForm({ type, listing }: Props) {
                           return !checked
                             ? field.onChange([...(field.value || []), place.id])
                             : field.onChange(
-                                field.value?.filter(
-                                  (value) => value !== place.id,
-                                ),
+                                field.value?.filter((v) => v !== place.id),
                               );
                         }}
                         className={`
-                          cursor-pointer px-4 py-2 rounded-full text-sm border transition-colors
-                          ${
-                            field.value?.includes(place.id)
-                              ? "bg-blue-600 text-white border-blue-600"
-                              : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-300"
-                          }
-                        `}
+                  cursor-pointer px-4 py-2 rounded-full text-sm border transition-colors
+                  ${
+                    field.value?.includes(place.id)
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-300"
+                  }
+                `}
                       >
                         {place.name}
                       </div>
@@ -685,6 +664,7 @@ export function PropertyForm({ type, listing }: Props) {
               </div>
             </div>
 
+            {/* Wilaya + City selects */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("wilaya")}</Label>
@@ -713,12 +693,7 @@ export function PropertyForm({ type, listing }: Props) {
                     <FieldLabel>{t("city")}</FieldLabel>
                     <Select
                       value={field.value?.toString()}
-                      onValueChange={(val) => {
-                        console.log({ val });
-                        field.onChange(Number(val))
-                        console.log({ form : form.getValues()})
-                      }}
-                        
+                      onValueChange={(val) => field.onChange(Number(val))}
                       disabled={!selectedWilaya || loadingCities}
                     >
                       <SelectTrigger>
@@ -738,17 +713,39 @@ export function PropertyForm({ type, listing }: Props) {
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Field>
-                  <FieldLabel>{t("street_address")}</FieldLabel>
-                  <Input placeholder={t("start_typing_address")} />
-                </Field>
-                {/* Map placeholder */}
-                <div className="aspect-video bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-zinc-400">
-                  {t("map_view")}
-                </div>
-              </div>
+            {/* ── Map location picker ───────────────────────────────────────────── */}
+            <div className="space-y-2">
+              <FieldLabel>{t("exact_location")}</FieldLabel>
+              <p className="text-sm text-muted-foreground -mt-1">
+                {t("exact_location_hint") ||
+                  "انقر على الخريطة لتحديد الموقع الدقيق للعقار"}
+              </p>
+
+              <Controller
+                name="location"
+                control={control}
+                render={({ field }) => (
+                 field.value && <LocationPicker
+                    value={
+                      field.value?.latitude && field.value?.longitude
+                        ? {
+                            lat: field.value.latitude,
+                            lng: field.value.longitude,
+                            // address: field.value.address,
+                          }
+                        : undefined
+                    }
+                    onChange={({ lat, lng, address }) => {
+                      field.onChange({
+                        ...field.value,
+                        latitude: lat,
+                        longitude: lng,
+                        address,
+                      });
+                    }}
+                  />
+                )}
+              />
             </div>
           </div>
         </div>

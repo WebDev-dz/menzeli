@@ -7,6 +7,7 @@ import about from '../locales/en/about.json';
 import dashboard from '../locales/en/dashboard.json';
 import filters from '../locales/en/filters.json';
 import propertyForm from '../locales/en/property-form.json';
+import propertyDetails from '../locales/en/property-details.json';
 // import notifications from '../locales/en/notifications.json';
 
 declare module 'i18next' {
@@ -21,6 +22,7 @@ declare module 'i18next' {
       dashboard: typeof dashboard;
       filters: typeof filters;
       "property-form": typeof propertyForm;
+      "property-details": typeof propertyDetails;
       // notifications: typeof notifications;
     };
   }

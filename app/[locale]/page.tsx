@@ -10,6 +10,7 @@ import ChatBotPopover from "@/components/shared/chat-bot-popover";
 import { ListingApi, ListingResource } from "@/api";
 import { apiConfig, API_URL } from "@/lib/api-config";
 import { SearchContent } from './content';
+import PropertyCard from '../../components/properties/property-card';
 
 export default async function Home({
   params,
@@ -30,14 +31,7 @@ export default async function Home({
     console.error("Failed to fetch featured listings:", error);
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(locale === "ar" ? "ar-DZ" : "en-US", {
-      style: "currency",
-      currency: "DZD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
+  
 
   return (
     <TranslationsProvider
@@ -62,7 +56,7 @@ export default async function Home({
               </p>
 
               {/* Search Bar */}
-              <SearchContent />
+              <SearchContent locale = {locale as "en"} />
             </div>
 
             {/* Background decoration */}
@@ -100,6 +94,7 @@ export default async function Home({
                   <Image
                     src="/images/mmb90ocm-gco1687.svg"
                     alt="Arrow"
+                    className = "rtl:rotate-180"
                     width={16}
                     height={16}
                   />
@@ -110,101 +105,7 @@ export default async function Home({
                 {featuredListings.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 ">
                     {featuredListings.map((listing) => (
-                      <Link
-                        key={listing.id}
-                        href={`/${locale}/listings/${listing.id}`}
-                        className="block h-full max-w-[400px]"
-                      >
-                        <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl ring-1 ring-zinc-900/5">
-                          <div className="relative h-64 w-full overflow-hidden bg-zinc-200">
-                            <img
-                              src={
-                                listing.image
-                                  ? `${API_URL}${listing.image}`
-                                  : "/images/placeholder-property.jpg"
-                              }
-                              alt={listing.title}
-                              // fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                            <div
-                              className={`absolute top-4 left-4 rounded-full px-3 py-1 text-xs font-semibold text-white ${listing.isReady ? "bg-green-500" : "bg-blue-600"}`}
-                            >
-                              {listing.isReady
-                                ? t("featured.ready")
-                                : t("featured.under_construction")}
-                            </div>
-                            <button className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white">
-                              <Image
-                                src="/images/mmb90ocm-7x2xhwy.svg"
-                                alt="Like"
-                                width={16}
-                                height={16}
-                              />
-                            </button>
-                          </div>
-                          <div className="flex flex-1 flex-col p-6">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h3 className="text-lg font-semibold text-zinc-900 line-clamp-1">
-                                  {listing.title}
-                                </h3>
-                                <div className="mt-2 flex items-center gap-2 text-sm text-zinc-500">
-                                  <Image
-                                    src="/images/mmb90ocm-xnh2hxn.svg"
-                                    alt="Pin"
-                                    width={14}
-                                    height={14}
-                                  />
-                                  {listing.location
-                                    ? `${listing.location.city}, ${listing.location.wilaya}`
-                                    : "Algeria"}
-                                </div>
-                              </div>
-                              <div className="text-right rtl:text-left shrink-0 ml-2">
-                                <p className="text-lg font-bold text-blue-600 whitespace-nowrap">
-                                  {formatPrice(listing.price)}
-                                </p>
-                                {listing.rentDuration && (
-                                  <p className="text-xs text-zinc-500">
-                                    {t("featured.per_month")}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="mt-6 flex items-center justify-between border-t border-zinc-100 pt-4">
-                              <div className="flex items-center gap-2 text-sm text-zinc-600">
-                                <Image
-                                  src="/images/mmb90ocm-82u9fbn.svg"
-                                  alt="Bed"
-                                  width={18}
-                                  height={18}
-                                />
-                                {listing.numberRooms} {t("featured.beds")}
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-zinc-600">
-                                <Image
-                                  src="/images/mmb90ocm-wx669uh.svg"
-                                  alt="Area"
-                                  width={18}
-                                  height={18}
-                                />
-                                {listing.surface}m²
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-zinc-600">
-                                {/* Using placeholder for bath as not in main resource, or check if features logic needed */}
-                                <Image
-                                  src="/images/mmb90ocm-329x3nu.svg"
-                                  alt="Bath"
-                                  width={18}
-                                  height={18}
-                                />
-                                {/* Placeholder or omit if not available */}-
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
+                      <PropertyCard key={listing.id} listing={listing} locale={locale as "en"} />
                     ))}
                   </div>
                 ) : (

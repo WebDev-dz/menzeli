@@ -23,8 +23,8 @@ import {
 } from "lucide-react"
 import {
   useDeleteMemberListing,
-  useMemberListings,
 } from "@/hooks/use-member-listings"
+import { useMyListingsContext } from "@/components/providers/my-listings-provider"
 
 type Props = {}
 
@@ -35,7 +35,7 @@ const ListingContent = (_props: Props) => {
   const status = searchParams.get("status")
   const { t } = useTranslation("dashboard")
 
-  const { data, isLoading, isError } = useMemberListings()
+  const { data, isLoading, isError } = useMyListingsContext()
   const { mutateAsync: deleteListing, isPending: isDeleting } =
     useDeleteMemberListing()
 
@@ -193,7 +193,7 @@ const ListingContent = (_props: Props) => {
               </div>
 
               {/* Stats */}
-              <div className="mb-4 grid grid-cols-2 divide-x divide-zinc-100 rounded-lg border border-zinc-100 bg-zinc-50/50 py-2">
+              {/* <div className="mb-4 grid grid-cols-2 divide-x divide-zinc-100 rounded-lg border border-zinc-100 bg-zinc-50/50 py-2">
                 <div className="flex items-center justify-center gap-2 px-2">
                   <Eye className="h-4 w-4 text-zinc-400" />
                   <div>
@@ -212,7 +212,7 @@ const ListingContent = (_props: Props) => {
                     <p className="text-sm font-bold text-zinc-900">42</p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Actions */}
               <div className="flex items-center gap-2">

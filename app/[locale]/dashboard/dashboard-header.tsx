@@ -1,26 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import UserDropdown from "@/components/shared/user-dropdown";
 import { NotificationsDropdown } from "@/components/shared/notifications-dropdown";
 import { useAuth } from "@/components/providers/auth";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+import { cn } from "@/lib/utils";
 
 export function DashboardHeader() {
   const { t } = useTranslation("dashboard");
   const { user } = useAuth();
+  const { toggleSidebar, isMobile } = useSidebar();
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-6 shadow-sm">
       <div className="flex flex-1 items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className={cn("shrink-0", { "hidden": !isMobile })}
+        >
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle Sidebar</span>
+        </Button>
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-          <Input
-            placeholder={t("header.search")}
-            className="h-10 border-0 bg-zinc-50 pl-10 focus-visible:ring-0"
-          />
+         
         </div>
       </div>
 

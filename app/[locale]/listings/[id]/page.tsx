@@ -9,12 +9,16 @@ export default async function PropertyPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
-  const { t, resources } = await initTranslations(locale, ["common", "listings"]);
+  const { resources } = await initTranslations(locale, [
+    "common",
+    "listings",
+    "property-details",
+  ]);
 
   return (
     <TranslationsProvider
       locale={locale}
-      namespaces={["common", "listings"]}
+      namespaces={["common", "listings", "property-details"]}
       resources={resources}
     >
       <div className="min-h-screen w-full">

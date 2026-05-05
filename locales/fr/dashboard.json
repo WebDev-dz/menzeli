@@ -5,6 +5,7 @@
     "favorites": "Favoris",
     "ai_assistant": "Assistant IA",
     "coins": "Coins & Abonnements",
+    "notifications": "Notifications",
     "settings": "Paramètres",
     "post_listing": "Déposer une annonce",
     "profile": "Profil"
@@ -81,6 +82,11 @@
     "new": {
       "title": "Créer une nouvelle propriété",
       "subtitle": "Remplissez les détails ci-dessous pour lister votre propriété"
+    },
+    "edit": {
+      "title": "Modifier la propriété",
+      "subtitle": "Mettez à jour les détails de votre propriété et gérez la disponibilité.",
+      "not_found": "Annonce introuvable"
     }
   },
   "favorites_page": {
@@ -188,5 +194,14 @@
       "investment": "Trouve de bons appartements d'investissement avec 2 chambres.",
       "short_stay": "J'ai besoin d'une location courte durée près du centre-ville."
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Restez informé de vos dernières alertes et messages",
+    "mark_all_read": "Tout marquer comme lu",
+    "mark_read": "Marquer comme lu",
+    "empty_title": "Aucune notification pour le moment",
+    "empty_subtitle": "Lorsque vous recevrez des notifications, elles apparaîtront ici",
+    "new": "Nouveau"
   }
 }

@@ -5,6 +5,7 @@
     "favorites": "Favorites",
     "ai_assistant": "AI Assistant",
     "coins": "Coins & Subscriptions",
+    "notifications": "Notifications",
     "settings": "Settings",
     "post_listing": "Post a Listing",
     "profile": "Profile"
@@ -81,6 +82,11 @@
     "new": {
       "title": "Create New Property",
       "subtitle": "Fill in the details below to list your property"
+    },
+    "edit": {
+      "title": "Edit Property",
+      "subtitle": "Update your property details and manage availability.",
+      "not_found": "Listing not found"
     }
   },
   "favorites_page": {
@@ -170,5 +176,14 @@
       "investment": "Find good investment apartments with 2 bedrooms.",
       "short_stay": "I need a short stay listing near the city center."
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Stay updated with your latest alerts and messages",
+    "mark_all_read": "Mark all as read",
+    "mark_read": "Mark read",
+    "empty_title": "No notifications yet",
+    "empty_subtitle": "When you get notifications, they'll show up here",
+    "new": "New"
   }
 }
