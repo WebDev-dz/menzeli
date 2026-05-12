@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { usePathname, useRouter } from "next/navigation";
 import i18nConfig from "@/i18nConfig";
 import {useEffect} from 'react';
-import UserDropdown from "./user-dropdown";
+import UserDropdown from "../members/member-dropdown";
 import { NotificationsDropdown } from "./notifications-dropdown";
 import { ConfigSite } from "@/lib/conf";
 

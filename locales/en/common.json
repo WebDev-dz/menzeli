@@ -79,5 +79,24 @@
       "day_ago": "{{count}}d ago"
     }
   },
+  "report_modal": {
+    "trigger": "Report Listing",
+    "title": "Report This Listing",
+    "description": "Tell us why you are reporting this listing. Our team will review it.",
+    "reason_label": "Reason",
+    "reason_placeholder": "Describe the issue (spam, scam, incorrect details, offensive content...)",
+    "cancel": "Cancel",
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "success": "Your report has been submitted successfully.",
+    "error_empty": "Please enter a reason before submitting.",
+    "error_generic": "Failed to submit report. Please try again."
+  },
   "back_to_listings": "Back to listings"
+  ,
+  "session_expired": {
+    "title": "Session expired",
+    "description": "Your session has expired. Please log in again to continue.",
+    "action": "Go to login"
+  }
 }

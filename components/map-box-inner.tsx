@@ -320,6 +320,9 @@ export default function MapboxMapInner({
 
         popupRef.current = popup;
       });
+      const pinMarker = new mapboxgl.Marker({ color: "#2563eb" })
+            .setLngLat(coords)
+            .addTo(map);
 
       const marker = new mapboxgl.Marker({
         element: el,

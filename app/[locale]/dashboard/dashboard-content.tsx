@@ -19,9 +19,10 @@ import { User } from "@/api";
 import { useWalletContext } from "@/components/providers/wallet-provider";
 import { useMyListingsContext } from "@/components/providers/my-listings-provider";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 export function DashboardContent() {
-  const { t } = useTranslation("dashboard");
+  const { t, i18n: {language: locale} } = useTranslation("dashboard");
   const { user: storedUser } = useAuth();
   const user = useMemo(() => storedUser, [storedUser]) as User;
 
@@ -82,10 +83,12 @@ export function DashboardContent() {
               </div>
             </div>
           </div>
-          <Button variant="outline" className="gap-2 border-zinc-200">
+            <Link href={`/${locale}/dashboard/profile`}>
+          <Button asChild variant="outline" className="gap-2 border-zinc-200">
             <Edit className="h-4 w-4" />
             {t("profile.edit")}
           </Button>
+            </Link>
         </CardContent>
       </Card>
 

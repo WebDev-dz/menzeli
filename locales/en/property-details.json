@@ -59,7 +59,9 @@
   "agent": {
     "fallback_name": "Agent",
     "verified": "Verified Agent",
+    "reviews_count": "Reviews",
     "view_property": "View My Property",
+    "contact_owner": "Contact Owner",
     "listing_info": "Listing Info",
     "id": "ID",
     "type": "Type"

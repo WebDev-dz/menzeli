@@ -45,6 +45,7 @@ export interface IndexRequest {
     maxPrice?: object;
     minSurface?: object;
     maxSurface?: object;
+    page?: number;
     perPage?: number;
 }
 
@@ -169,6 +170,9 @@ export class ListingApi extends runtime.BaseAPI {
         if (requestParameters['perPage'] != null) {
             queryParameters['per_page'] = requestParameters['perPage'];
         }
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -254,8 +258,10 @@ export class ListingApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        
 
-        let urlPath = `/listings/{listing}`;
+
+        let urlPath = `/listings/{listing}/report`;
         urlPath = urlPath.replace(`{${"listing"}}`, encodeURIComponent(String(requestParameters['listing'])));
 
         return {

@@ -59,6 +59,9 @@
   "agent": {
     "fallback_name": "الوكيل",
     "verified": "وكيل موثق",
+    "reviews_count": "عدد التقييمات",
+      "contact_owner": "اتصل بالمالك",
+
     "view_property": "عرض عقاري",
     "listing_info": "معلومات الإعلان",
     "id": "المعرف",

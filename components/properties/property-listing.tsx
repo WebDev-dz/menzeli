@@ -10,9 +10,7 @@
  * 4. listingsIndexRequestSchema should include: swLat, swLng, neLat, neLng
  */
 
-import { useMemo, useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { useCallback } from "react";
 import { useListings } from "@/hooks/use-listings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -22,28 +20,36 @@ import {
   appendFiltersToSearchParams,
   listingsIndexRequestSchema,
 } from "./utils";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Form } from "../ui/form";
 import MainFilters from "./main-filter";
 import Pagination from "../shared/pagination";
 import PropertyRowCard from "./property-row-card";
 import MapSearchView, { BoundsFilter } from "../map-search";
+import PropertyCard from "./property-card";
+import ListingWidget from "../shared/listing-widget";
 
-type ViewMode = "list" | "map";
-
-export default function RealEstateFilterPage(props: any) {
-  const { t } = useTranslation("filters");
+function RealEstateFilterPageContent(props: any) {
+  useTranslation("filters");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const params = useParams<{ locale: string }>();
+  const locale = (
+    Array.isArray(params?.locale) ? params.locale[0] : params?.locale || "en"
+  ) as "ar" | "en" | "fr";
 
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-
+  console.log({ listingsProps: props });
   const parsedParams = listingsIndexRequestSchema.parse({
     ...props,
     page: props.page ? Number(props.page) : 1,
-    perPage: props.perPage || 10,
+    perPage: props.perPage || 8,
     // Pass bounding box from URL if present
     swLat: props.swLat ? Number(props.swLat) : undefined,
     swLng: props.swLng ? Number(props.swLng) : undefined,
@@ -67,7 +73,7 @@ export default function RealEstateFilterPage(props: any) {
 
   const resetFilters = () => {
     form.reset({
-      perPage: 10,
+      perPage: 8,
       page: 1,
       isReady: false,
       isNegotiable: false,
@@ -90,107 +96,106 @@ export default function RealEstateFilterPage(props: any) {
       // Use router.replace so it doesn't stack history on every pan
       router.replace(`${pathname}?${current.toString()}`);
     },
-    [router, pathname, searchParams]
+    [router, pathname, searchParams],
   );
 
-  const properties = useMemo(() => {
-    if (!data?.data?.listing) return [];
-    return data.data.listing.map((p: any) => ({
-      original: p,
-      id: p.id,
-      title: p.title || "Untitled Property",
-      location: p.location
-        ? `${p.location.city}, ${p.location.wilaya}`
-        : "Unknown Location",
-      price: p.price,
-      pricePerSqFt: p.surface ? Math.round(p.price / p.surface) : 0,
-      area: p.surface || 0,
-      areaDetails: p.surface ? `(${p.surface} sq.m.)` : "",
-      bhk: p.numberRooms || 0,
-      baths: 1,
-      description: p.description || "No description available.",
-      verified: p.moderationStatus === "published",
-      postedDate: p.timePost
-        ? new Date(p.timePost).toLocaleDateString()
-        : new Date().toLocaleDateString(),
-      owner: "Agent",
-      image:
-        p.image ||
-        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2940&auto=format&fit=crop",
-      isReady: p.isReady,
-      hasPhotos: !!p.image,
-      features: p.features || [],
-      ratingAvg: p.ratingAvg || 0,
-      reviewsCount: p.reviewsCount || 0,
-      views: p.views || 0,
-      // 🗺️ Real coords from your API — add these fields to your listing model
-      lat: p.latitude,
-      lng: p.longitude,
-    }));
-  }, [data]);
-
-  const pagination = useMemo(() => data?.data?.pagination, [data]);
+  const pagination = data?.data?.pagination;
+  const listings = data?.data?.listing || [];
 
   return (
     <>
       {/* Filters Bar */}
-      <div className="w-full border-b bg-linear-to-b from-white to-muted/20">
-        <div className="mx-auto max-w-7xl px-4 py-4 lg:px-6 xl:px-8">
-          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-            <PropertyFilters
-              resetFilters={resetFilters}
-              form={form}
-              onSubmit={onSubmitFilters}
-              loading={isLoading}
+      <div className="w-full flex flex-col gap-10  bg-linear-to-b from-white to-muted/20">
+
+        <ListingWidget
+          withProvider
+          defaultView="row-card"
+          className="mx-auto w-full max-w-7xl px-4 pt-4 lg:px-6 xl:px-8"
+          cardsView={
+            <div className="grid gap-8 lg:grid-cols-[310px_minmax(0,1fr)] xl:gap-10">
+              <aside className="hidden lg:block">
+                <Form {...form}>
+                  <div className="sticky top-24 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                    <MainFilters
+                      form={form}
+                      onSubmit={onSubmitFilters}
+                      resetFilters={resetFilters}
+                    />
+                  </div>
+                </Form>
+              </aside>
+              <main className="min-w-0">
+                <div className="overflow-hidden mb-4 rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                  <PropertyFilters
+                    resetFilters={resetFilters}
+                    form={form}
+                    onSubmit={onSubmitFilters}
+                    loading={isLoading}
+                  />
+                </div>
+                <div className="grid gap-6 sm:grid-cols-2 [1560px]:grid-cols-3">
+                  {listings.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      listing={(property as any).original ?? property}
+                      locale={locale}
+                    />
+                  ))}
+                </div>
+              </main>
+            </div>
+          }
+          rowCardsView={
+            <div className="grid gap-8 lg:grid-cols-[350px_minmax(0,1fr)] xl:gap-10">
+              <aside className="hidden lg:block">
+                <Form {...form}>
+                  <div className="sticky top-24 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                    <MainFilters
+                      form={form}
+                      onSubmit={onSubmitFilters}
+                      resetFilters={resetFilters}
+                    />
+                  </div>
+                </Form>
+              </aside>
+              <main className="min-w-0 space-y-4">
+                <div className="mb-4 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                  <PropertyFilters
+                    resetFilters={resetFilters}
+                    form={form}
+                    onSubmit={onSubmitFilters}
+                    loading={isLoading}
+                  />
+                </div>
+                {listings.map((property) => (
+                  <PropertyRowCard
+                    key={property.id}
+                    property={(property as any).original ?? property}
+                  />
+                ))}
+              </main>
+            </div>
+          }
+          mapView={
+            <MapSearchView
+              locale={locale}
+              properties={listings}
+              isLoading={isLoading}
+              onBoundsChange={handleBoundsChange}
             />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div
-        className={`mx-auto w-full max-w-7xl px-4 py-4 lg:px-6 xl:px-8 ${
-          viewMode === "map" ? "" : "grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] xl:gap-10"
-        }`}
-      >
-        {/* Sidebar filters — hidden in map mode */}
-        {viewMode === "list" && (
-          <aside className="hidden lg:block">
-            <Form {...form}>
-              <div className="sticky top-24 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-                <MainFilters
-                  form={form}
-                  onSubmit={onSubmitFilters}
-                  resetFilters={resetFilters}
-                />
-              </div>
-            </Form>
-          </aside>
-        )}
-
-        {/* Map / List view */}
-        <main className="min-w-0">
-          <MapSearchView
-            properties={data?.data?.listing || []}
-            isLoading={isLoading}
-            onBoundsChange={handleBoundsChange}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            renderCard={(property) => (
-              <PropertyRowCard
-                key={property.id}
-                property={(property as any).original ?? property}
-              />
-            )}
-          />
-
-          {/* Pagination — only in list mode */}
-          {viewMode === "list" && pagination && (
-            // @ts-ignore
+          }
+        />
+        {pagination && (
+          // @ts-ignore
+          <div className="flex justify-center">
             <Pagination {...pagination} />
-          )}
-        </main>
+          </div>
+        )}
       </div>
     </>
   );
+}
+
+export default function RealEstateFilterPage(props: any) {
+  return <RealEstateFilterPageContent {...props} />;
 }

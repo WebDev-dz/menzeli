@@ -79,5 +79,24 @@
       "day_ago": "il y a {{count}} j"
     }
   },
+  "report_modal": {
+    "trigger": "Signaler l'annonce",
+    "title": "Signaler cette annonce",
+    "description": "Indiquez pourquoi vous signalez cette annonce. Notre equipe va la verifier.",
+    "reason_label": "Motif",
+    "reason_placeholder": "Decrivez le probleme (spam, arnaque, details incorrects, contenu offensant...)",
+    "cancel": "Annuler",
+    "submit": "Envoyer le signalement",
+    "submitting": "Envoi en cours...",
+    "success": "Votre signalement a ete envoye avec succes.",
+    "error_empty": "Veuillez saisir un motif avant l'envoi.",
+    "error_generic": "Echec de l'envoi du signalement. Veuillez reessayer."
+  },
   "back_to_listings": "Retour aux annonces"
+  ,
+  "session_expired": {
+    "title": "Session expirée",
+    "description": "Votre session a expiré. Veuillez vous reconnecter pour continuer.",
+    "action": "Aller à la connexion"
+  }
 }

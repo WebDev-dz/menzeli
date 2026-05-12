@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, IBM_Plex_Sans } from "next/font/google";
 import "../globals.css";
+import initTranslations from "@/app/i18n";
+import TranslationsProvider from "@/components/providers/TranslationsProvider";
 import { QueryProvider } from "@/components/providers/query";
 import { AuthProvider } from "@/components/providers/auth";
 import i18nConfig from "@/i18nConfig";
-import { dir } from 'i18next';
+import { dir } from "i18next";
 import { ConfigSite } from "@/lib/conf";
 import { Toaster } from "@/components/ui/sonner";
+import { WidgetProvider } from "../../components/providers/widget-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,31 +33,33 @@ export const metadata: Metadata = {
 };
 
 export function generateStaticParams() {
-  return i18nConfig.locales.map(locale => ({ locale }));
+  return i18nConfig.locales.map((locale) => ({ locale }));
 }
 
 export default async function RootLayout({
   children,
-  params
+  params,
 }: Readonly<{
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
-  const isArabic = locale === 'ar';
+  const isArabic = locale === "ar";
+  const { resources } = await initTranslations(locale, ["common"]);
 
   return (
     <html lang={locale} dir={dir(locale)}>
       <body
-        className={`${!isArabic ? geistSans.variable : ''} ${!isArabic ? geistMono.variable : ''} ${isArabic ? ibm.variable : ''} antialiased ${isArabic ? 'font-ibm' : ''}`}
+        className={`${!isArabic ? geistSans.variable : ""} ${!isArabic ? geistMono.variable : ""} ${isArabic ? ibm.variable : ""} antialiased ${isArabic ? "font-ibm" : ""}`}
       >
-        <QueryProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </QueryProvider>
+        <TranslationsProvider locale={locale} namespaces={["common"]} resources={resources}>
+          <QueryProvider>
+            <AuthProvider>
+              <WidgetProvider>{children}</WidgetProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </TranslationsProvider>
         <Toaster />
-
       </body>
     </html>
   );

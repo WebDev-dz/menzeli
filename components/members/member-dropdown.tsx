@@ -49,8 +49,10 @@ const UserDropdown = () => {
   // Helper to get profile image
   const getProfileImage = () => {
     if ('profileImage' in user && user.profileImage) {
-        if(user.profileImage.startsWith('http')) return user.profileImage;
-        return `${API_URL}${user.profileImage}`
+        
+      if(user.profileImage.startsWith('http')) return user.profileImage;
+      const imageUrl = `${API_URL}${user.profileImage}`
+      return imageUrl
     }
     return undefined
   }

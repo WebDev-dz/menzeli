@@ -8,36 +8,36 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface Props   {
-  currentPage: number;
-  totalPages: number;
-  total: number;
-  from: number;
-  to: number;
-  hasPages: boolean;
-  hasMorePages: boolean;
+  currentPage: number | string;
+  totalPages: number | string;
+  total: number | string;
+  from: number | string;
+  to: number | string;
+  hasPages: boolean | string;
+  hasMorePages: boolean | string;
 };
 
-const toNumber = (value: string | undefined, fallback = 0) => {
+const toNumber = (value: number | string | undefined, fallback = 0) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const isTruthy = (value: string | undefined) =>
-  value === "true" || value === "1";
+const isTruthy = (value: string | undefined | boolean) =>
+  value === "true"  || value === true;
 
 const Pagination = (props: Props) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const currentPage = useMemo(() => props.currentPage, [props.currentPage]);
-  const totalPages = useMemo(() => props.totalPages, [props.totalPages]);
-  const total = useMemo(() => props.total, [props.total]);
-  const from = useMemo(() => props.from, [props.from]);
-  const to = useMemo(() => props.to, [props.to]);
-  const hasPages = useMemo(() => props.hasPages && totalPages > 1, [props.hasPages, totalPages]);
+  const currentPage = useMemo(() => toNumber(props.currentPage), [props.currentPage]);
+  const totalPages = useMemo(() => toNumber(props.totalPages), [props.totalPages]);
+  const total = useMemo(() => toNumber(props.total), [props.total]);
+  const from = useMemo(() => toNumber(props.from), [props.from]);
+  const to = useMemo(() => toNumber(props.to), [props.to]);
+  const hasPages = useMemo(() => isTruthy(props.hasPages) && toNumber(totalPages) > 1, [props.hasPages, totalPages]);
   const hasPrevPage = useMemo(() => currentPage > 1, [currentPage]);
-  const hasNextPage = useMemo(() => props.hasMorePages && currentPage < totalPages, [props.hasMorePages, currentPage, totalPages]);
+  const hasNextPage = useMemo(() => isTruthy(props.hasMorePages) && currentPage < toNumber(totalPages), [props.hasMorePages, currentPage, totalPages]);
 
 
   console.log({ props })

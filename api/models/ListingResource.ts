@@ -214,6 +214,9 @@ export interface ListingResource {
     timePost: Date | null;
 }
 
+
+
+
 /**
  * Check if a given object implements the ListingResource interface.
  */

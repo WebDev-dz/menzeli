@@ -5,7 +5,7 @@ export const extractFiltersFromSearchParams = (
   searchParams: URLSearchParams,
 ) => {
   return {
-    perPage: Number(searchParams.get("perPage")) || 10,
+    perPage: Number(searchParams.get("perPage")) || 8,
     page: Number(searchParams.get("page")) || 1,
     typeId: searchParams.get("typeId")
       ? Number(searchParams.get("typeId"))

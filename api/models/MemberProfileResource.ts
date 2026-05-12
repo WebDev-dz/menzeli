@@ -78,10 +78,20 @@ export interface MemberProfileResource {
     verification: MemberProfileResourceVerification;
     /**
      * 
-     * @type {MemberProfileResourceWalletBalance}
-     * @memberof MemberProfileResource
+     * @type {number}
      */
-    walletBalance: MemberProfileResourceWalletBalance;
+    walletBalance: number;
+
+    /**
+     * 
+     * @type {number}
+     */
+    rating: number;
+    /**
+     * 
+     * @type {number}
+     */
+    views: number;
 }
 
 /**
@@ -116,7 +126,9 @@ export function MemberProfileResourceFromJSONTyped(json: any, ignoreDiscriminato
         'hasPassword': json['has_password'],
         'profileImage': json['profile_image'],
         'verification': MemberProfileResourceVerificationFromJSON(json['verification']),
-        'walletBalance': MemberProfileResourceWalletBalanceFromJSON(json['wallet_balance']),
+        'walletBalance': json['wallet_balance'],
+        'rating': json['rating'],
+        'views' : json['views']
     };
 }
 

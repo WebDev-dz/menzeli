@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AuthApi,
   AuthCompleteProfileOperationRequest,
@@ -12,11 +12,12 @@ import {
   ProfileApi,
   UpdateProfileRequest,
   User,
-  UserFromJSON,
 } from "@/api";
 import { apiConfig } from "@/lib/api-config";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useCallback } from 'react';
+import { SessionExpiredModal } from "@/components/auth/SessionExpiredModal";
 
 // Initialize AuthApi with configuration to read token from localStorage
 const authApi = new AuthApi(apiConfig);
@@ -39,115 +40,132 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 export const isNotComplete = (user: User | null | { phone: string }): user is  { phone: string } => {
-  // @ts-ignore
-  return user?.phone && !user?.name ;
+  if (!user) return false;
+  const phone = (user as { phone?: unknown }).phone;
+  const name = (user as { name?: unknown }).name;
+  return typeof phone === "string" && (!name || String(name).trim().length === 0);
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null | { phone: string }>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("token");
+  });
+  const [user, setUser] = useState<User | null | { phone: string }>(() => {
+    if (typeof window === "undefined") return null;
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as User | { phone: string };
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(token));
+  const [isLoading] = useState(false);
+  const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
+  const [sessionExpiredRedirectTo, setSessionExpiredRedirectTo] = useState<string | null>(null);
   const router = useRouter();
+  const params = useParams<{ locale: string }>();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const logout = () => {
+  const locale = useMemo(() => {
+    const raw = Array.isArray(params?.locale) ? params.locale[0] : params?.locale;
+    return raw || "ar";
+  }, [params?.locale]);
+
+  const getCallbackUrl = useCallback(() => {
+    const qs = searchParams?.toString();
+    return `${pathname}${qs ? `?${qs}` : ""}`;
+  }, [pathname, searchParams]);
+
+  const expireSession = useCallback(() => {
+    const callbackUrl = getCallbackUrl();
+    const redirectTo = `/${locale}/auth?callback_url=${encodeURIComponent(callbackUrl)}`;
+
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-    router.push("/auth");
-  };
 
-  const syncUserState = (
+    setSessionExpiredRedirectTo(redirectTo);
+    setSessionExpiredOpen(true);
+  }, [getCallbackUrl, locale]);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+    router.push(`/${locale}/auth`);
+  }, [locale, router]);
+
+  useEffect(() => {
+    if (!sessionExpiredOpen || !sessionExpiredRedirectTo) return;
+    const timer = window.setTimeout(() => {
+      router.push(sessionExpiredRedirectTo);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [router, sessionExpiredOpen, sessionExpiredRedirectTo]);
+
+  
+
+// Only run the query when there's a token
+const { refetch, isLoading: queryLoading, data: userData } = useQuery({
+  queryKey: ['currentUser', token],
+  queryFn: async () => {
+    const response = await memberApi.profileShow({
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.success) {
+      expireSession();
+      throw new Error('Failed to fetch user');
+    }
+
+    setUser((currentUser) => {
+      const nextUser = { ...currentUser, ...response.data } as User | { phone: string };
+      localStorage.setItem('user', JSON.stringify(nextUser));
+      return nextUser;
+    });
+
+    return response.data;
+  },
+  enabled: !!token,          // ← don't run without a token
+  refetchInterval: 60000,
+  retry: false,
+});
+
+  const syncUserState = useCallback((
     profile: Pick<User, "name" | "email" | "phone" | "profileImage">,
   ) => {
     setUser((currentUser) => {
-      const nextUser = currentUser
-        ? {
-            ...currentUser,
-            name: profile.name,
-            email: profile.email,
-            phone: profile.phone,
-            profileImage: profile.profileImage,
-          }
-        : {
-            phone: profile.phone,
-            name: profile.name,
-            email: profile.email,
-            profileImage: profile.profileImage,
-          };
-
+      const nextUser = {...currentUser, ...profile}
       localStorage.setItem("user", JSON.stringify(nextUser));
       return nextUser as User | { phone: string };
     });
-  };
-
-  const { data: userData, isError , refetch} = useQuery({
-    queryKey: ['currentUser', token],
-    queryFn: async () => {
-      if (!token) return null;
-      
-      const response = await memberApi.profileShow({
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.success) {
-        throw new Error('Failed to fetch user');
-      }
-      
-      return response.data;
-    },
-    enabled: !!token && isAuthenticated,
-    refetchInterval: 60000,
-    retry: false,
-    staleTime: 60000,
-  });
-
-  useEffect(() => {
-    if (userData) {
-      syncUserState({
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        profileImage: userData.profileImage,
-      });
-    }
-  }, [userData]);
-
-  useEffect(() => {
-    if (isError) {
-      logout();
-    }
-  }, [isError]);
-
-  useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-    
-    if (token) {
-      setIsAuthenticated(true);
-      setToken(token);
-      if (storedUser) {
-        try {
-        console.log({storedUser})
-          setUser(UserFromJSON(JSON.parse(storedUser)));
-        } catch (e) {
-          console.error("Failed to parse stored user", e);
-        }
-      }
-    }
-    setIsLoading(false);
-  }, []);
+  },[]);
 
   useEffect(() => {
     if (user && isNotComplete(user)) {
-     router.push("/auth")
+     router.push(`/${locale}/auth`)
     }
-  }, [user]);
+  }, [locale, router, user]);
+
+  // Only expire session if the user WAS logged in (had a token) and the fetch returned nothing
+useEffect(() => {
+  if (!token) return;        // ← not logged in, nothing to expire
+  if (queryLoading) return;
+  if (!userData) {
+    expireSession();
+  }
+}, [userData, queryLoading, token, expireSession]);
 
   const loginMutation = useMutation({
     mutationFn: (request: AuthRequestOtpOperationRequest) =>
@@ -316,6 +334,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+      <SessionExpiredModal
+        open={sessionExpiredOpen}
+        onLogin={() => {
+          if (sessionExpiredRedirectTo) router.push(sessionExpiredRedirectTo);
+        }}
+      />
     </AuthContext.Provider>
   );
 }

@@ -16,34 +16,12 @@ import Link from "next/link";
 import { FeatureResource, ListingResource } from "@/api";
 
 type Props = {
-  property: {
-    original: ListingResource;
-    id: number;
-    title: string;
-    ratingAvg: number;
-    reviewsCount: number;
-    views: number;
-    location: string;
-    price: number;
-    pricePerSqFt: number;
-    area: number;
-    areaDetails: string;
-    bhk: number;
-    baths: number;
-    description: string;
-    verified: boolean;
-    postedDate: string;
-    owner: string;
-    image: string;
-    isReady: boolean;
-    hasPhotos: boolean;
-    features: FeatureResource[] | undefined;
-  };
+  property: ListingResource;
 };
 
 const PropertyRowCard = ({ property }: Props) => {
   const { t } = useTranslation("filters");
-
+  console.log({ property });
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -65,14 +43,15 @@ const PropertyRowCard = ({ property }: Props) => {
                   : `${API_URL}${property.image}`
               }
               alt={property.title}
+              loading="lazy"
               className="aspect-square h-full w-full object-cover md:rounded-l-lg"
             />
             <div className="absolute top-2 right-2 flex flex-col gap-2 items-end">
-              {property.verified && (
+              {/* {property.verified && (
                 <Badge className="bg-white text-green-600 hover:bg-white border-none shadow-sm">
                   <Check className="w-3 h-3 mr-1" /> Verified
                 </Badge>
-              )}
+              )} */}
               <Button
                 size="icon"
                 variant="secondary"
@@ -80,7 +59,7 @@ const PropertyRowCard = ({ property }: Props) => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  toggleFavorite(property.original);
+                  toggleFavorite(property);
                 }}
               >
                 <Heart
@@ -129,24 +108,24 @@ const PropertyRowCard = ({ property }: Props) => {
                     {formatPrice(property.price)}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {property.pricePerSqFt
-                      ? `$${property.pricePerSqFt}/sq.ft.`
+                    {Math.round(property.price / (property?.surface || 1)) > 0
+                      ? `${Math.round(property.price / (property?.surface || 1))}/sq.ft.`
                       : ""}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold">{property.area} sq.m.</p>
+                  <p className="text-xl font-bold">{property.surface} sq.m.</p>
                   <p className="text-muted-foreground text-xs">
-                    {property.areaDetails}
+                    {property.surface}
                   </p>
                 </div>
                 <div>
                   <p className="text-xl font-bold">
-                    {property.bhk} {t("bhk") || "Rooms"}
+                    {property.numberRooms} {t("bhk") || "Rooms"}
                   </p>
-                  <p className="text-muted-foreground text-xs">
+                  {/* <p className="text-muted-foreground text-xs">
                     {property.baths} Baths
-                  </p>
+                  </p> */}
                 </div>
               </div>
 
@@ -196,9 +175,9 @@ const PropertyRowCard = ({ property }: Props) => {
                   <p>
                     {t("posted_by").replace(
                       "{{date}}",
-                      new Date(property.postedDate).toLocaleString("en-US"),
+                      new Date(property.timePost || "").toLocaleString("en-US"),
                     ) ||
-                      `Posted on ${new Date(property.postedDate).toLocaleString("en-US")}`}
+                      `Posted on ${new Date(property.timePost || "").toLocaleString("en-US")}`}
                   </p>
                 </div>
               </div>

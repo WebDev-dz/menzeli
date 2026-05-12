@@ -1,6 +1,5 @@
 import initTranslations from "@/app/i18n";
 import TranslationsProvider from "@/components/providers/TranslationsProvider";
-import Header from "@/components/shared/header";
 import PropertyDetails from "@/components/properties/property-details";
 
 export default async function PropertyPage({
@@ -22,7 +21,7 @@ export default async function PropertyPage({
       resources={resources}
     >
       <div className="min-h-screen w-full">
-        <PropertyDetails id={parseInt(id)} />
+        <PropertyDetails id={Number(id)} />
       </div>
     </TranslationsProvider>
   );

@@ -54,30 +54,37 @@ import {
 import { useAuth } from "@/components/providers/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ListingResource } from "@/api";
+import { ListingResource, MemberResource } from "@/api";
 import { fileToUrl, urlToFile } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import LocationPicker from "../location-picker";
+import { DTOResponse, ReviewResource } from "@/hooks/use-listings";
 
 type Props = {
   type?: "edit";
   locale: "ar" | "en" | "fr";
-  listing?: ListingResource;
+  listing?: DTOResponse<
+    ListingResource & {
+      member?: MemberResource;
+      reviews: ReviewResource[];
+    }
+  >;
 };
 
 export function PropertyForm({ type, listing, locale = "en" }: Props) {
   const { t } = useTranslation("property-form");
   const { data: propertyTypes } = usePropertyTypes({ locale });
-  const { data: rentDurations } = useRentDurations({ locale });
+  const { data: rentDurations } = useRentDurations({ locale, type: 0 });
   const { data: features } = useFeatures({ locale });
   const { data: nearPlaces } = useNearPlaces({ locale });
   const { data: wilayas } = useWilayas({ locale });
 
   const [selectedWilaya, setSelectedWilaya] = useState<number | undefined>();
-  const { data: cities, isLoading: loadingCities, refetch: refetchCities } = useCities(
-    selectedWilaya,
-    locale,
-  );
+  const {
+    data: cities,
+    isLoading: loadingCities,
+    refetch: refetchCities,
+  } = useCities(selectedWilaya, locale);
 
   const { mutateAsync: createListing, status: createStatus } =
     useCreateMemberListing();
@@ -89,6 +96,7 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultProperty,
+    
   });
   const {
     formState: { isSubmitting, isSubmitSuccessful },
@@ -105,10 +113,11 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
       console.log("listing", listing);
       // Set selected wilaya to trigger city loading
       const loadForm = async () => {
-        const listingForm = await ListingToForm(listing);
+        const listingForm = await ListingToForm(listing?.data);
+        console.log({ listingForm });
         reset(listingForm);
-        const wilayaCode = listing?.location?.wilayaCode || 0;
-        console.log({wilayaCode})
+        const wilayaCode = listing?.data?.location?.wilayaCode || 0;
+        console.log({ wilayaCode });
         setSelectedWilaya(Number(wilayaCode));
         refetchCities();
         // Set cityId
@@ -119,15 +128,16 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
   }, []);
 
   useEffect(() => {
-    if (selectedWilaya && cities) {
-    const city = cities?.cities?.find(
-      (city) => city.name === listing?.location?.city,
-    );
-    console.log({ city });
-    setValue("location.cityId", city?.id || 0);
+    console.log({ listing })
+    if (selectedWilaya && cities && listing) {
+      const city = cities?.cities?.find(
+        (city) => city.name === listing?.data?.location?.city,
+      );
+      console.log({ city });
+      setValue("location.cityId", city?.id || 0);
 
-    setValue("location.cityId", city?.id || 0);
-     }
+      setValue("location.cityId", city?.id || 0);
+    }
   }, [selectedWilaya, cities, listing]);
 
   const onSubmit = async (data: PropertyFormValues) => {
@@ -139,7 +149,7 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
 
       if (type === "edit" && listing) {
         await updateListing({
-          listing: listing.id,
+          listing: listing?.data?.id,
           updateRequest: data,
         });
         toast.success(t("success_update"));
@@ -161,6 +171,10 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
     console.log("form", form.getValues());
     toast.error(t("error_create"));
   };
+
+  useEffect (() => {
+    console.log({formState: form.getValues()})
+  },[form.formState])
 
   if (createStatus === "success" || updateStatus === "success") {
     return (
@@ -194,6 +208,8 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
       </div>
     );
   }
+
+
 
   return (
     <form
@@ -255,7 +271,7 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
                       onUpload={async (files) => {
                         const urls = files.map(fileToUrl);
                         form.setValue("images", files);
-    
+
                         return urls.map((url, index) => ({
                           id: index.toString(),
                           url,
@@ -666,24 +682,30 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
 
             {/* Wilaya + City selects */}
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("wilaya")}</Label>
-                <Select
-                  value={selectedWilaya?.toString()}
-                  onValueChange={(val) => setSelectedWilaya(parseInt(val))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("select_wilaya")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {wilayas?.wilayas?.map((w) => (
-                      <SelectItem key={w.id} value={w.id.toString()}>
-                        {w.id} - {w.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Controller
+                name="location.cityId"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field >
+                    <Label>{t("wilaya")}</Label>
+                    <Select
+                      value={selectedWilaya?.toString()}
+                      onValueChange={(val) => setSelectedWilaya(parseInt(val))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("select_wilaya")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {wilayas?.wilayas?.map((w) => (
+                          <SelectItem key={w.id} value={w.id.toString()}>
+                            {w.id} - {w.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              />
 
               <Controller
                 name="location.cityId"
@@ -724,27 +746,30 @@ export function PropertyForm({ type, listing, locale = "en" }: Props) {
               <Controller
                 name="location"
                 control={control}
-                render={({ field }) => (
-                 field.value && <LocationPicker
-                    value={
-                      field.value?.latitude && field.value?.longitude
-                        ? {
-                            lat: field.value.latitude,
-                            lng: field.value.longitude,
-                            // address: field.value.address,
-                          }
-                        : undefined
-                    }
-                    onChange={({ lat, lng, address }) => {
-                      field.onChange({
-                        ...field.value,
-                        latitude: lat,
-                        longitude: lng,
-                        address,
-                      });
-                    }}
-                  />
-                )}
+                render={({ field }) =>
+                  field.value && (
+                    <LocationPicker
+                      value={
+                        field.value?.latitude && field.value?.longitude
+                          ? {
+                              lat: field.value.latitude,
+                              lng: field.value.longitude,
+                              // address: field.value.address,
+                            }
+                          : undefined
+                      }
+                      onChange={({ lat, lng, address }) => {
+                        console.log({ locationField: field})
+                        field.onChange({
+                          ...field.value,
+                          latitude: lat,
+                          longitude: lng,
+                          address,
+                        });
+                      }}
+                    />
+                  )
+                }
               />
             </div>
           </div>

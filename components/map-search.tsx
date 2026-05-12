@@ -2,12 +2,13 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { LayoutList, Map, Loader2, RefreshCw } from "lucide-react";
-import { API_URL } from "@/lib/api-config";
+import { Map, Loader2 } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import mapboxgl from "mapbox-gl";
 import { SearchBox } from "@mapbox/search-js-react";
 import { ListingResource } from '../api/models/ListingResource';
+import MapListCard from "./map/map-list-card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
@@ -24,18 +25,9 @@ export interface BoundsFilter {
 
 interface MapSearchViewProps {
   properties: ListingResource[];
+  locale: string;
   isLoading?: boolean;
   onBoundsChange: (bounds: BoundsFilter) => void;
-  viewMode: "list" | "map";
-  onViewModeChange: (mode: "list" | "map") => void;
-  renderCard: (property: ListingResource) => React.ReactNode;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatPrice(price: number) {
-  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1)}M د.ج`;
-  if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K د.ج`;
-  return `${price} د.ج`;
 }
 
 // ─── Dynamic Mapbox (no SSR) ──────────────────────────────────────────────────
@@ -51,142 +43,15 @@ const MapboxMapInner = dynamic(() => import("./map-box-inner"), {
   ),
 });
 
-// ─── Compact sidebar card ─────────────────────────────────────────────────────
-function MapListCard({
-  property,
-  isSelected,
-  isHovered,
-  onClick,
-  onMouseEnter,
-  onMouseLeave,
-}: {
-  property: ListingResource;
-  isSelected: boolean;
-  isHovered: boolean;
-  onClick: () => void;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-}) {
-  const img = property.image ? `${API_URL}${property.image}` : null;
-
-  return (
-    <div
-      data-property-id={property.id}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      style={{
-        display: "flex",
-        gap: 12,
-        padding: "12px 14px",
-        borderBottom: "1px solid #f3f4f6",
-        background: isSelected ? "#eff4ff" : isHovered ? "#f8faff" : "#fff",
-        borderRight: `3px solid ${isSelected ? "#1a56db" : "transparent"}`,
-        cursor: "pointer",
-        transition: "background 0.12s",
-        alignItems: "flex-start",
-      }}
-    >
-      {/* Thumbnail */}
-      <div
-        style={{
-          width: 76,
-          height: 64,
-          borderRadius: 10,
-          overflow: "hidden",
-          flexShrink: 0,
-          background: "#f3f4f6",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 24,
-        }}
-      >
-        {img ? (
-          <img
-            src={img}
-            alt={property.title}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          "🏠"
-        )}
-      </div>
-
-      {/* Info */}
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <p
-          style={{
-            margin: "0 0 3px",
-            fontSize: 13,
-            fontWeight: 700,
-            color: "#111",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            lineHeight: 1.3,
-          }}
-        >
-          {property.title}
-        </p>
-
-        {/* Meta */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 5,
-            fontSize: 11,
-            color: "#6b7280",
-          }}
-        >
-          {(property?.surface || 0) > 0 && <span>📐 {property.surface} م²</span>}
-          {(property as any).bhk > 0 && (
-            <span>🛏 {(property as any).bhk} غرف</span>
-          )}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span
-            style={{ fontSize: 14, fontWeight: 800, color: "#1a56db" }}
-          >
-            {formatPrice(property.price)}
-          </span>
-          {/* {property.verified && (
-            <span
-              style={{
-                fontSize: 10,
-                color: "#059669",
-                background: "#d1fae5",
-                padding: "2px 6px",
-                borderRadius: 99,
-                fontWeight: 600,
-              }}
-            >
-              موثّق ✓
-            </span>
-          )} */}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function MapSearchView({
   properties,
   isLoading,
   onBoundsChange,
-  viewMode,
-  onViewModeChange,
-  renderCard,
+  locale,
 }: MapSearchViewProps) {
+  const isMobile = useIsMobile();
   const [hoveredId, setHoveredId] = useState<string | number | null>(null);
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -266,142 +131,116 @@ export default function MapSearchView({
           )}
         </p>
 
-        {/* View toggle */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-            background: "#f4f4f5",
-            border: "1px solid #e4e4e7",
-            borderRadius: 12,
-            padding: 3,
-          }}
-        >
-          {(["list", "map"] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => onViewModeChange(mode)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 14px",
-                borderRadius: 9,
-                border: "none",
-                fontSize: 13,
-                fontWeight: viewMode === mode ? 600 : 400,
-                color: viewMode === mode ? "#111" : "#6b7280",
-                background: viewMode === mode ? "#fff" : "transparent",
-                boxShadow:
-                  viewMode === mode ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              {mode === "list" ? (
-                <>
-                  <LayoutList style={{ width: 15, height: 15 }} /> القائمة
-                </>
-              ) : (
-                <>
-                  <Map style={{ width: 15, height: 15 }} /> الخريطة
-                </>
-              )}
-            </button>
-          ))}
-        </div>
+      
       </div>
 
-      {/* ── List mode ────────────────────────────────────────────────────── */}
-      {viewMode === "list" && (
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: 16,
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
-        >
-          {isLoading ? (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: 240,
-              }}
-            >
-              <Loader2
-                style={{ width: 32, height: 32, color: "#1a56db" }}
-                className="animate-spin"
-              />
-            </div>
-          ) : properties.length === 0 ? (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: 240,
-                textAlign: "center",
-              }}
-            >
-              <Map style={{ width: 40, height: 40, color: "#d1d5db", marginBottom: 12 }} />
-              <p style={{ color: "#9ca3af", fontSize: 15, margin: 0 }}>
-                لا توجد نتائج
-              </p>
-            </div>
-          ) : (
-            properties.map((p) => (
-              <div
-                key={p.id}
-                data-property-id={p.id}
-                onMouseEnter={() => setHoveredId(p.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                style={{
-                  borderRadius: 16,
-                  outline:
-                    hoveredId === p.id || selectedId === p.id
-                      ? "2px solid #1a56db"
-                      : "none",
-                  outlineOffset: 2,
-                  transition: "outline 0.1s",
-                }}
-              >
-                {renderCard(p)}
-              </div>
-            ))
-          )}
-        </div>
-      )}
 
       {/* ── Map mode ─────────────────────────────────────────────────────── */}
-      {viewMode === "map" && (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          flex: 1,
+          overflow: "hidden",
+          height: isMobile ? "auto" : "calc(100vh - 196px)",
+        }}
+      >
+        {/* Map panel */}
         <div
           style={{
-            display: "flex",
             flex: 1,
-            overflow: "hidden",
-            height: "calc(100vh - 196px)",
+            position: "relative",
+            minHeight: isMobile ? "50vh" : undefined,
+            order: isMobile ? 1 : 2,
           }}
         >
+
+          {/* ── Mapbox SearchBox — floats over the map ── */}
+          {isMounted && (
+            <div
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                zIndex: 10,
+                width: isMobile ? "calc(100% - 24px)" : 280,
+                maxWidth: 360,
+              }}
+            >
+              <SearchBox
+                accessToken={MAPBOX_ACCESS_TOKEN}
+                map={mapRef.current ?? undefined}
+                mapboxgl={mapboxgl}
+                onRetrieve={(result) => {
+                  // flyTo the selected place
+                  const [lng, lat] =
+                    result.features[0]?.geometry?.coordinates ?? [];
+                  if (lng && lat && mapRef.current) {
+                    mapRef.current.flyTo({
+                      center: [lng, lat],
+                      zoom: 13,
+                      duration: 800,
+                    });
+                  }
+                }}
+                options={{
+                  language: "ar",
+                  country: "DZ",
+                }}
+                theme={{
+                  variables: {
+                    fontFamily: "'Cairo', sans-serif",
+                    borderRadius: "10px",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                  },
+                }}
+              />
+            </div>
+          )}
+
+          {/* ── "Search this area" button ── */}
+          {showSearchHere && (
+            <div
+              style={{
+                position: "absolute",
+                top: 12,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 10,
+                animation: "fadeUp 0.2s ease",
+              }}
+            >
+           
+            </div>
+          )}
+
+          <MapboxMapInner
+            properties={properties}
+            mapRef={mapRef}
+            mapboxgl={mapboxgl}
+            hoveredId={hoveredId}
+            selectedId={selectedId}
+            onMarkerClick={handleMarkerClick}
+            onBoundsChange={handleBoundsChange}
+          />
+        </div>
+
           {/* Scrollable list sidebar */}
-          <div
-            ref={listRef}
-            style={{
-              width: 320,
-              flexShrink: 0,
-              overflowY: "auto",
-              borderLeft: "1px solid #e5e7eb",
-              background: "#fff",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
+        <div
+          ref={listRef}
+          style={{
+            width: isMobile ? "100%" : 320,
+            maxHeight: isMobile ? "45vh" : "none",
+            flexShrink: 0,
+            overflowY: "auto",
+            borderLeft: isMobile ? "none" : "1px solid #e5e7eb",
+            borderTop: isMobile ? "1px solid #e5e7eb" : "none",
+            background: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            order: isMobile ? 2 : 1,
+          }}
+        >
             {/* Sidebar header */}
             <div
               style={{
@@ -459,6 +298,7 @@ export default function MapSearchView({
             ) : (
               properties.map((p) => (
                 <MapListCard
+                  locale={locale}
                   key={p.id}
                   property={p}
                   isSelected={selectedId === p.id}
@@ -469,81 +309,8 @@ export default function MapSearchView({
                 />
               ))
             )}
-          </div>
-
-          {/* Map panel */}
-          <div style={{ flex: 1, position: "relative" }}>
-
-            {/* ── Mapbox SearchBox — floats over the map ── */}
-            {isMounted && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 12,
-                  right: 12,
-                  zIndex: 10,
-                  width: 280,
-                }}
-              >
-                <SearchBox
-                  accessToken={MAPBOX_ACCESS_TOKEN}
-                  map={mapRef.current ?? undefined}
-                  mapboxgl={mapboxgl}
-                  onRetrieve={(result) => {
-                    // flyTo the selected place
-                    const [lng, lat] =
-                      result.features[0]?.geometry?.coordinates ?? [];
-                    if (lng && lat && mapRef.current) {
-                      mapRef.current.flyTo({
-                        center: [lng, lat],
-                        zoom: 13,
-                        duration: 800,
-                      });
-                    }
-                  }}
-                  options={{
-                    language: "ar",
-                    country: "DZ",
-                  }}
-                  theme={{
-                    variables: {
-                      fontFamily: "'Cairo', sans-serif",
-                      borderRadius: "10px",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-                    },
-                  }}
-                />
-              </div>
-            )}
-
-            {/* ── "Search this area" button ── */}
-            {showSearchHere && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 12,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  zIndex: 10,
-                  animation: "fadeUp 0.2s ease",
-                }}
-              >
-             
-              </div>
-            )}
-
-            <MapboxMapInner
-              properties={properties}
-              mapRef={mapRef}
-              mapboxgl={mapboxgl}
-              hoveredId={hoveredId}
-              selectedId={selectedId}
-              onMarkerClick={handleMarkerClick}
-              onBoundsChange={handleBoundsChange}
-            />
-          </div>
         </div>
-      )}
+      
 
       <style>{`
         @keyframes fadeUp {
@@ -551,6 +318,7 @@ export default function MapSearchView({
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
+      </div>
     </div>
   );
 }

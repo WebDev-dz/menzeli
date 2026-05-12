@@ -5,7 +5,7 @@ import { Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import UserDropdown from "@/components/shared/user-dropdown";
+import UserDropdown from "@/components/members/member-dropdown";
 import { NotificationsDropdown } from "@/components/shared/notifications-dropdown";
 import { useAuth } from "@/components/providers/auth";
 import { useSidebar } from "@/components/providers/sidebar-provider";

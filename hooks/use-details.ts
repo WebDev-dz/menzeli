@@ -41,10 +41,11 @@ export const usePropertyTypes = ({ locale = "en" } : { locale : string}) => {
   });
 };
 
-export const useRentDurations = ({ locale = "en" } : { locale : string}) => {
+export const useRentDurations = ({ locale = "en", type = 0 } : { locale : string, type : number}) => {
   return useQuery({
     ...getDetailsQueryOptions({ locale }),
     select: (data) => data.rentDurations,
+    enabled: type !== 0,
   });
 };
 
