@@ -5,6 +5,7 @@ import { useParams, usePathname, useRouter, useSearchParams } from "next/navigat
 import {
   AuthApi,
   AuthCompleteProfileOperationRequest,
+  AuthLogin200Response,
   AuthRequestOtp200Response,
   AuthRequestOtpOperationRequest,
   AuthVerifyOtp200Response,
@@ -28,6 +29,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (phone: string) => Promise<AuthRequestOtp200Response>;
+  loginWithPassword: (login: string, password: string) => Promise<AuthLogin200Response>;
   verifyOtp: (phone: string, otp: string) => Promise<AuthVerifyOtp200Response>;
   token: string | null;
   updateName: (name: string) => Promise<void>;
@@ -172,6 +174,11 @@ useEffect(() => {
       authApi.authRequestOtp(request),
   });
 
+  const passwordLoginMutation = useMutation({
+    mutationFn: (request: { authLoginRequest: { login: string; password: string } }) =>
+      authApi.authLogin(request),
+  });
+
   const verifyOtpMutation = useMutation({
     mutationFn: (request: AuthVerifyOtpOperationRequest) =>
       authApi.authVerifyOtp(request),
@@ -227,6 +234,36 @@ useEffect(() => {
       return await loginMutation.mutateAsync({ "authRequestOtpRequest": { "phone": phone } });  
     } catch (error) {
       console.error("Login failed:", error);
+      throw error;
+    }
+  };
+
+  const loginWithPassword = async (loginValue: string, password: string) => {
+    try {
+      const response = await passwordLoginMutation.mutateAsync({
+        authLoginRequest: { login: loginValue, password },
+      });
+
+      if (response?.data?.token) {
+        localStorage.setItem("token", response.data.token);
+        setToken(response.data.token);
+        setIsAuthenticated(true);
+
+        if (response.data.user) {
+          setUser(response.data.user as unknown as User);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+        }
+
+        refetch();
+
+        if (response.data.fillName) {
+          router.push("/");
+        }
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Password login failed:", error);
       throw error;
     }
   };
@@ -326,6 +363,7 @@ useEffect(() => {
         token,
         isLoading,
         login,
+        loginWithPassword,
         verifyOtp,
         updateName,
         updateProfile,
