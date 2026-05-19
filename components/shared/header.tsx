@@ -73,13 +73,12 @@ export default function Header(props: HeaderProps) {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2">
                <Image
-                 src={"/images/menzili_logo.jpeg"}
+                 src={"/images/menzili_logo.png"}
                  alt={`${ConfigSite.siteName} Logo`}
                  width={120}
                 height={32}
                 className="h-8 w-auto"
               />
-               <span className="text-xl font-extrabold text-slate-900 tracking-tight">{ConfigSite.siteName}</span>
              </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600">
             <Link href={`/${currentLocale}/listings`} className="hover:text-blue-600 transition-colors">{i18n.t('common:header.browse')}</Link>

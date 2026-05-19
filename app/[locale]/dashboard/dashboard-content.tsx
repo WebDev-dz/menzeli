@@ -32,7 +32,7 @@ export function DashboardContent() {
 
   const activeListingsCount = useMemo(() => {
     if (!listingsData?.data?.listing) return 0;
-    return listingsData.data.listing.filter(l => l.moderationStatus === "published").length;
+    return listingsData.data.listing.length;
   }, [listingsData]);
 
   const totalViews = useMemo(() => {

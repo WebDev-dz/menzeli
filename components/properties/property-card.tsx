@@ -14,7 +14,6 @@ type Props = {
 
 const PropertyCard = ({ listing, locale }: Props) => {
   const { t } = useTranslation();
-  console.log({listing})
   return (
     <Link
       key={listing.id}
