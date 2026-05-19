@@ -95,7 +95,7 @@ export interface DTOResponse<T> {
 
 export interface ListingResourceDetails extends Omit<ListingResource, "members"> {
   reviews: ReviewResource [];
-  member: MemberResource
+  member?: MemberResource
 }
 
 const ListingResourceDetailsFromJSON = (json: any) => {
