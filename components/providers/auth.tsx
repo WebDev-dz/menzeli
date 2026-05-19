@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   AuthApi,
   AuthCompleteProfileOperationRequest,
@@ -58,7 +58,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const locale = useMemo(() => {
     const raw = Array.isArray(params?.locale) ? params.locale[0] : params?.locale;
@@ -66,9 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [params?.locale]);
 
   const getCallbackUrl = useCallback(() => {
-    const qs = searchParams?.toString();
-    return `${pathname}${qs ? `?${qs}` : ""}`;
-  }, [pathname, searchParams]);
+    if (typeof window !== "undefined") {
+      return `${window.location.pathname}${window.location.search}`;
+    }
+    return pathname;
+  }, [pathname]);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");

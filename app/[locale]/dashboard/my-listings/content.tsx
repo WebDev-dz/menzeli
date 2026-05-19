@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { Suspense, useMemo } from "react"
 import Link from "next/link"
 import { useParams, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -26,7 +26,7 @@ import MapSearchView from "@/components/map-search"
 
 type Props = {}
 
-const ListingContent = (_props: Props) => {
+const ListingContentInner = (_props: Props) => {
   const params = useParams<{ locale: string }>()
   const locale = params?.locale ?? "en"
   const searchParams = useSearchParams()
@@ -320,4 +320,10 @@ const ListingContent = (_props: Props) => {
   )
 }
 
-export default ListingContent
+export default function ListingContent(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <ListingContentInner {...props} />
+    </Suspense>
+  )
+}

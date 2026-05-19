@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -36,7 +36,7 @@ type PhoneFormValues = z.infer<typeof algerianPhoneSchema>;
 
 type Props = {};
 
-const PhoneLogin = (props: Props) => {
+const PhoneLoginInner = (_props: Props) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -433,4 +433,10 @@ const PhoneLogin = (props: Props) => {
   );
 };
 
-export default PhoneLogin;
+export default function PhoneLogin(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <PhoneLoginInner {...props} />
+    </Suspense>
+  );
+}

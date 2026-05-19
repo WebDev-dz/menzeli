@@ -10,7 +10,7 @@
  * 4. listingsIndexRequestSchema should include: swLat, swLng, neLat, neLng
  */
 
-import { useCallback } from "react";
+import { Suspense, useCallback } from "react";
 import { useListings } from "@/hooks/use-listings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
@@ -197,5 +197,9 @@ function RealEstateFilterPageContent(props: any) {
 }
 
 export default function RealEstateFilterPage(props: any) {
-  return <RealEstateFilterPageContent {...props} />;
+  return (
+    <Suspense fallback={null}>
+      <RealEstateFilterPageContent {...props} />
+    </Suspense>
+  );
 }

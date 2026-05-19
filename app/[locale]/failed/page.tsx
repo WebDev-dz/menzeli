@@ -5,8 +5,9 @@ import { useParams, useSearchParams } from "next/navigation";
 import { XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Suspense } from "react";
 
-export default function PaymentFailedPage() {
+function PaymentFailedPageInner() {
   const params = useParams<{ locale: string }>();
   const searchParams = useSearchParams();
   const locale = Array.isArray(params?.locale) ? params.locale[0] : params?.locale || "en";
@@ -39,5 +40,13 @@ export default function PaymentFailedPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function PaymentFailedPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentFailedPageInner />
+    </Suspense>
   );
 }

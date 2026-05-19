@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { PaginateMyListingPagination } from "@/api";
@@ -25,7 +25,7 @@ const toNumber = (value: number | string | undefined, fallback = 0) => {
 const isTruthy = (value: string | undefined | boolean) =>
   value === "true"  || value === true;
 
-const Pagination = (props: Props) => {
+const PaginationInner = (props: Props) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -149,4 +149,10 @@ const Pagination = (props: Props) => {
   );
 };
 
-export default Pagination;
+export default function Pagination(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <PaginationInner {...props} />
+    </Suspense>
+  );
+}

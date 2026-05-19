@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import z from "zod";
@@ -16,7 +16,7 @@ type PasswordLoginValues = {
   password: string;
 };
 
-export default function PasswordLogin() {
+function PasswordLoginInner() {
   const { loginWithPassword, updateName, user } = useAuth();
   const { t } = useTranslation("auth");
   const router = useRouter();
@@ -250,5 +250,13 @@ export default function PasswordLogin() {
             </div>
           )}
         </div>
+  );
+}
+
+export default function PasswordLogin() {
+  return (
+    <Suspense fallback={null}>
+      <PasswordLoginInner />
+    </Suspense>
   );
 }
