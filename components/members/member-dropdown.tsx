@@ -51,7 +51,7 @@ const UserDropdown = () => {
     if ('profileImage' in user && user.profileImage) {
         
       if(user.profileImage.startsWith('http')) return user.profileImage;
-      const imageUrl = `${API_URL}${user.profileImage}`
+      const imageUrl = `${user.profileImage}`
       return imageUrl
     }
     return undefined

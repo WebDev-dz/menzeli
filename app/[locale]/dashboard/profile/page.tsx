@@ -18,6 +18,11 @@ import {
 } from "lucide-react";
 import { API_URL } from "@/lib/api-config";
 import { toast } from "sonner";
+import {
+  useRequestResetPasswordOtp,
+  useStoreNewPassword,
+  useVerifyResetPasswordOtp,
+} from "@/hooks/use-reset-password";
 
 export default function ProfilePage() {
   const { user, updateProfile, updateProfileImage } = useAuth();
@@ -32,6 +37,16 @@ export default function ProfilePage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [resetOtpRequested, setResetOtpRequested] = useState(false);
+  const [resetOtpCode, setResetOtpCode] = useState("");
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
+  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
+
+  const requestResetOtp = useRequestResetPasswordOtp();
+  const verifyResetOtp = useVerifyResetPasswordOtp();
+  const storeNewPasswordMutation = useStoreNewPassword();
 
   // Initialize form with user data
   useEffect(() => {
@@ -64,7 +79,7 @@ export default function ProfilePage() {
     if (imagePreview) return imagePreview;
     if (user && "profileImage" in user && user.profileImage) {
       if (user.profileImage.startsWith("http")) return user.profileImage;
-      return `${API_URL}${user.profileImage}`;
+      return `${user.profileImage}`;
     }
     return undefined;
   }, [imagePreview, user]);
@@ -120,6 +135,60 @@ export default function ProfilePage() {
     } finally {
       event.target.value = "";
       setIsUploadingImage(false);
+    }
+  };
+
+  const resetPasswordFlow = () => {
+    setResetOtpRequested(false);
+    setResetOtpCode("");
+    setResetToken(null);
+    setNewPassword("");
+    setNewPasswordConfirmation("");
+    setDevOtpCode(null);
+
+    requestResetOtp.reset();
+    verifyResetOtp.reset();
+    storeNewPasswordMutation.reset();
+  };
+
+  const handleRequestResetOtp = async () => {
+    if (!phone.trim()) return;
+    try {
+      const response = await requestResetOtp.mutateAsync({ phone: phone.trim() });
+      setResetOtpRequested(true);
+      setDevOtpCode(response.data?.otpCode ?? null);
+      toast.success("OTP sent to your phone");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to request OTP");
+    }
+  };
+
+  const handleVerifyResetOtp = async () => {
+    if (!phone.trim() || !resetOtpCode.trim()) return;
+    try {
+      const response = await verifyResetOtp.mutateAsync({
+        phone: phone.trim(),
+        otp_code: resetOtpCode.trim(),
+      });
+      setResetToken(response.data.resetToken);
+      toast.success("OTP verified");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to verify OTP");
+    }
+  };
+
+  const handleStoreNewPassword = async () => {
+    if (!resetToken) return;
+    try {
+      await storeNewPasswordMutation.mutateAsync({
+        reset_token: resetToken,
+        password: newPassword,
+        password_confirmation: newPasswordConfirmation,
+      });
+      toast.success("Password updated successfully");
+      resetPasswordFlow();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update password");
     }
   };
 
@@ -294,6 +363,138 @@ export default function ProfilePage() {
           </div>
 
           <Separator />
+
+          <div className="space-y-4 rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <div className="font-medium">Reset Password</div>
+              <div className="text-sm text-muted-foreground">
+                Verify OTP, then set a new password.
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="reset-phone">Phone</Label>
+                <Input id="reset-phone" value={phone} disabled />
+              </div>
+
+              <div className="flex items-end gap-3">
+                <Button
+                  type="button"
+                  onClick={handleRequestResetOtp}
+                  disabled={!phone.trim() || requestResetOtp.isPending}
+                  className="w-full"
+                >
+                  {requestResetOtp.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending OTP...
+                    </>
+                  ) : (
+                    "Send OTP"
+                  )}
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reset-otp">OTP Code</Label>
+                <Input
+                  id="reset-otp"
+                  value={resetOtpCode}
+                  onChange={(e) => setResetOtpCode(e.target.value)}
+                  placeholder="1234"
+                  inputMode="numeric"
+                  disabled={!resetOtpRequested || verifyResetOtp.isPending || !!resetToken}
+                />
+              </div>
+
+              <div className="flex items-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleVerifyResetOtp}
+                  disabled={
+                    !resetOtpRequested ||
+                    !resetOtpCode.trim() ||
+                    verifyResetOtp.isPending ||
+                    !!resetToken
+                  }
+                  className="w-full"
+                >
+                  {verifyResetOtp.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : resetToken ? (
+                    "Verified"
+                  ) : (
+                    "Verify OTP"
+                  )}
+                </Button>
+              </div>
+
+              {devOtpCode ? (
+                <div className="md:col-span-2 text-sm text-muted-foreground">
+                  OTP: <span className="font-mono">{devOtpCode}</span>
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="********"
+                  disabled={!resetToken || storeNewPasswordMutation.isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="new-password-confirmation">Confirm Password</Label>
+                <Input
+                  id="new-password-confirmation"
+                  type="password"
+                  value={newPasswordConfirmation}
+                  onChange={(e) => setNewPasswordConfirmation(e.target.value)}
+                  placeholder="********"
+                  disabled={!resetToken || storeNewPasswordMutation.isPending}
+                />
+              </div>
+
+              <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={resetPasswordFlow}
+                  disabled={storeNewPasswordMutation.isPending}
+                >
+                  Reset
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleStoreNewPassword}
+                  disabled={
+                    !resetToken ||
+                    !newPassword ||
+                    newPassword !== newPasswordConfirmation ||
+                    storeNewPasswordMutation.isPending
+                  }
+                >
+                  {storeNewPasswordMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Password"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

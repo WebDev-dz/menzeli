@@ -49,21 +49,9 @@ export const isNotComplete = (user: User | null | { phone: string }): user is  {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("token");
-  });
-  const [user, setUser] = useState<User | null | { phone: string }>(() => {
-    if (typeof window === "undefined") return null;
-    const raw = localStorage.getItem("user");
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as User | { phone: string };
-    } catch {
-      return null;
-    }
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(token));
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null | { phone: string }>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading] = useState(false);
   const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
   const [sessionExpiredRedirectTo, setSessionExpiredRedirectTo] = useState<string | null>(null);
@@ -81,6 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const qs = searchParams?.toString();
     return `${pathname}${qs ? `?${qs}` : ""}`;
   }, [pathname, searchParams]);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+    setIsAuthenticated(Boolean(storedToken));
+
+    const raw = localStorage.getItem("user");
+    if (!raw) return;
+    try {
+      setUser(JSON.parse(raw) as User | { phone: string });
+    } catch {
+      setUser(null);
+    }
+  }, []);
 
   const expireSession = useCallback(() => {
     const callbackUrl = getCallbackUrl();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { PropertyForm } from "@/components/properties/property-form";
+import { UpdatePropertyForm } from "@/components/properties/update-property-form";
 import { useListing } from "@/hooks/use-listings";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
@@ -44,7 +44,7 @@ export default function EditListingPage() {
         </p>
       </div>
 
-      <PropertyForm locale = {locale} type="edit" listing={listing} />
+      <UpdatePropertyForm locale={locale} listing={listing} />
     </div>
   );
 }

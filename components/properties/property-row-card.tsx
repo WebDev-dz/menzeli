@@ -40,7 +40,7 @@ const PropertyRowCard = ({ property }: Props) => {
               src={
                 property.image.startsWith("http")
                   ? property.image
-                  : `${API_URL}${property.image}`
+                  : `${property.image}`
               }
               alt={property.title}
               loading="lazy"
@@ -140,7 +140,7 @@ const PropertyRowCard = ({ property }: Props) => {
                     >
                       {feature.iconPath && (
                         <img
-                          src={`${API_URL}${feature.iconPath}`}
+                          src={`${feature.iconPath}`}
                           alt=""
                           className="w-3 h-3"
                         />

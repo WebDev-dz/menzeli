@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Bot,
@@ -61,20 +62,17 @@ export function Sidebar({ locale }: SidebarProps) {
         )}
       >
       {/* Header */}
-      <Link href="#"  >
-      <div className="flex h-16 items-center gap-3 px-6 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
-          <LayoutDashboard className="h-5 w-5" />
+      <Link href={`/${locale}/dashboard`}>
+        <div className="flex h-16 items-center gap-3 px-6 border-b border-zinc-100 dark:border-zinc-800">
+          <Image
+            src="/images/menzili_logo.png"
+            alt={`${ConfigSite.siteName} Logo`}
+            width={120}
+            height={32}
+            className="h-8 w-auto"
+          />
+         
         </div>
-        <div>
-          <h1 className="text-lg font-bold leading-none text-zinc-900 dark:text-zinc-50">
-            {ConfigSite.siteName}
-          </h1>
-          <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
-            Real Estate Marketplace
-          </p>
-        </div>
-      </div>
       </Link>
       {/* Nav */}
       <nav className="flex-1 space-y-1 px-3 py-6">

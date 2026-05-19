@@ -26,7 +26,7 @@ const PropertyCard = ({ listing, locale }: Props) => {
           <img
             src={
               listing.image
-                ? `${API_URL}${listing.image}`
+                ? `${listing.image}`
                 : "/images/placeholder-property.jpg"
             }
             alt={listing.title}
@@ -46,7 +46,7 @@ const PropertyCard = ({ listing, locale }: Props) => {
             <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold shadow">
               {listing.type.iconPath && (
                 <img
-                  src={`${API_URL}${listing.type.iconPath}`}
+                  src={`${listing.type.iconPath}`}
                   alt=""
                   className="w-4 h-4"
                 />

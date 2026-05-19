@@ -10,10 +10,15 @@ export const fileToUrl = (file: File): string => {
 }
 
 export const urlToFile = async (url: string): Promise<File> => {
-  const response = await fetch(url)
-  const blob = await response.blob()
-  const filename = url.split("/").pop() || "file"
-  return new File([blob], filename, { type: blob.type })
+  try {
+    
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const filename = url.split("/").pop() || "file"
+    return new File([blob], filename, { type: blob.type })
+  } catch (error) {
+    return new File([], "file.png")
+  }
 }
 
 

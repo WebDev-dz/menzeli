@@ -20,6 +20,7 @@ import { useWalletContext } from "@/components/providers/wallet-provider";
 import { useMyListingsContext } from "@/components/providers/my-listings-provider";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { PricingModal } from "@/components/shared/pricing-modal";
 
 export function DashboardContent() {
   const { t, i18n: {language: locale} } = useTranslation("dashboard");
@@ -84,7 +85,7 @@ export function DashboardContent() {
             </div>
           </div>
             <Link href={`/${locale}/dashboard/profile`}>
-          <Button asChild variant="outline" className="gap-2 border-zinc-200">
+          <Button variant="outline" className="gap-2 border-zinc-200">
             <Edit className="h-4 w-4" />
             {t("profile.edit")}
           </Button>
@@ -145,10 +146,12 @@ export function DashboardContent() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                 <Wallet className="h-6 w-6 text-white" />
               </div>
-              <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 border-none gap-1 h-8">
-                <Plus className="h-3 w-3" />
-                {t("stats.top_up")}
-              </Button>
+              <PricingModal>
+                <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 border-none gap-1 h-8">
+                  <Plus className="h-3 w-3" />
+                  {t("stats.top_up")}
+                </Button>
+              </PricingModal>
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-blue-100">{t("stats.coin_balance")}</p>

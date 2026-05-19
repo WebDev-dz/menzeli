@@ -53,7 +53,7 @@ export default function FavoritesPage() {
             <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100">
               {property.image ? (
                 <img
-                  src={property.image.startsWith('http') ? property.image : `${API_URL}${property.image}`}
+                  src={property.image.startsWith('http') ? property.image : `${property.image}`}
                   alt={property.title}
                   className="object-cover w-full h-full transition-transform group-hover:scale-105"
                 />

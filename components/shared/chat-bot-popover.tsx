@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Bot, Loader2, MessageCircle, Phone, SendHorizonal } from "lucide-react"
@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useAuth } from "@/components/providers/auth"
-import { RecommendationResource, useChatbot } from "@/hooks/use-chatbot"
+import { useChatbotInfinite } from "@/hooks/use-chatbot"
 import { API_URL } from "@/lib/api-config"
 import { cn } from "@/lib/utils"
 
@@ -23,35 +23,62 @@ const ChatBotPopover = () => {
   const params = useParams<{ locale: string }>()
   const locale = Array.isArray(params?.locale) ? params.locale[0] : params?.locale
   const { isAuthenticated, isLoading } = useAuth()
-  const { data: conversation, isLoading: isLoadingConversation, sendMessage, isSendingMessage } =
-    useChatbot()
+  const {
+    messages,
+    isLoading: isLoadingConversation,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    sendMessage,
+    isSendingMessage,
+  } = useChatbotInfinite()
   const [message, setMessage] = useState("")
   const scrollRef = useRef<HTMLDivElement | null>(null)
-
-  const messages = useMemo(() => conversation?.messages ?? [], [conversation])
-
-  const isRecommendationList = (
-    recommendations: string | RecommendationResource[],
-  ): recommendations is RecommendationResource[] => {
-    return (
-      Array.isArray(recommendations) &&
-      recommendations.every(
-        (item) =>
-          typeof item === "object" &&
-          item !== null &&
-          "id" in item &&
-          "title" in item,
-      )
-    )
-  }
+  const previousMessageCountRef = useRef(0)
+  const initialScrollDoneRef = useRef(false)
+  const pendingLoadMoreRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null)
 
   useEffect(() => {
     if (!scrollRef.current) return
-    scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [messages, isSendingMessage])
+    const element = scrollRef.current
+
+    if (pendingLoadMoreRef.current) {
+      const { scrollHeight, scrollTop } = pendingLoadMoreRef.current
+      const nextScrollHeight = element.scrollHeight
+      element.scrollTop = nextScrollHeight - scrollHeight + scrollTop
+      pendingLoadMoreRef.current = null
+      previousMessageCountRef.current = messages.length
+      return
+    }
+
+    if (!initialScrollDoneRef.current) {
+      element.scrollTop = element.scrollHeight
+      initialScrollDoneRef.current = true
+      previousMessageCountRef.current = messages.length
+      return
+    }
+
+    if (messages.length > previousMessageCountRef.current) {
+      element.scrollTop = element.scrollHeight
+    }
+
+    previousMessageCountRef.current = messages.length
+  }, [messages.length, isSendingMessage])
 
   if (isLoading ) {
     return null
+  }
+
+  const handleLoadMore = async () => {
+    if (!scrollRef.current) return
+    if (!hasNextPage || isFetchingNextPage) return
+
+    pendingLoadMoreRef.current = {
+      scrollHeight: scrollRef.current.scrollHeight,
+      scrollTop: scrollRef.current.scrollTop,
+    }
+
+    await fetchNextPage()
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -75,7 +102,7 @@ const ChatBotPopover = () => {
         <PopoverContent
           align="end"
           side="top"
-          className="w-[360px] p-0 sm:w-[420px]"
+          className="w-90 p-0 sm:w-105"
         >
           <PopoverHeader className="border-b px-4 py-3">
             <div className="flex items-center gap-2">
@@ -91,7 +118,7 @@ const ChatBotPopover = () => {
             </div>
           </PopoverHeader>
           {!isAuthenticated ? (
-            <div className="flex min-h-[220px] flex-col items-center justify-center gap-4 px-6 py-8 text-center">
+            <div className="flex min-h-55 flex-col items-center justify-center gap-4 px-6 py-8 text-center">
               <p className="text-sm text-muted-foreground">
                 Sign in to chat with the assistant and get personalized listing recommendations.
               </p>
@@ -103,8 +130,24 @@ const ChatBotPopover = () => {
             <>
               <div
                 ref={scrollRef}
-                className="flex max-h-[420px] min-h-[320px] flex-col gap-3 overflow-y-auto px-4 py-4"
+                className="flex max-h-105 min-h-80 flex-col gap-3 overflow-y-auto px-4 py-4"
               >
+                {hasNextPage ? (
+                  <div className="flex justify-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLoadMore}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : null}
+                      Load more
+                    </Button>
+                  </div>
+                ) : null}
                 {isLoadingConversation ? (
                   <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                     <Loader2 className="mr-2 size-4 animate-spin" />
@@ -115,7 +158,7 @@ const ChatBotPopover = () => {
                     Start a conversation with the chatbot.
                   </div>
                 ) : (
-                  messages.map((item) => (
+                  messages?.map((item) => (
                     <div
                       key={item.id}
                       className={cn(
@@ -125,12 +168,11 @@ const ChatBotPopover = () => {
                           : "self-end bg-primary text-primary-foreground",
                       )}
                     >
-                      <div className="whitespace-pre-wrap break-words">
+                      <div className="whitespace-pre-wrap wrap-break-word">
                         {item.message}
                       </div>
 
                       {item.is_bot &&
-                      isRecommendationList(item.recommendations) &&
                       item.recommendations.length > 0 ? (
                         <div className="mt-3 space-y-2">
                           {item.recommendations.map((recommendation) => (
@@ -144,7 +186,7 @@ const ChatBotPopover = () => {
                                   src={
                                     recommendation.main_image?.startsWith("http")
                                       ? recommendation.main_image
-                                      : `${API_URL}${recommendation.main_image}`
+                                      : `${recommendation.main_image}`
                                   }
                                   alt={recommendation.title}
                                   className="h-16 w-16 rounded-md object-cover"

@@ -79,7 +79,7 @@ const MemberCard = ({ member, isLoading, listingId, listingType }: Props) => {
               <span className="text-muted-foreground">{t("agent.type")}</span>
               <div className="flex items-center gap-1.5">
                 {listingType.iconPath && (
-                  <img src={`${API_URL}${listingType.iconPath}`} alt="" className="w-4 h-4" />
+                  <img src={`${listingType.iconPath}`} alt="" className="w-4 h-4" />
                 )}
                 <span className="font-medium">{listingType.name}</span>
               </div>
@@ -96,7 +96,7 @@ const MemberCard = ({ member, isLoading, listingId, listingType }: Props) => {
         <div className="flex items-start gap-4">
           <Avatar size="lg" className="size-14 border">
             <AvatarImage
-              src={member?.profileImage ? `${API_URL}/${member?.profileImage}` : undefined}
+              src={member?.profileImage ? `/${member?.profileImage}` : undefined}
               alt={member?.name ?? t("agent.fallback_name")}
             />
             <AvatarFallback>{fallbackText}</AvatarFallback>

@@ -24,7 +24,7 @@ export default function MapListCard({
   onMouseLeave,
 }: Props) {
   
-  const img = property.image ? `${API_URL}${property.image}` : null;
+  const img = property.image ? `${property.image}` : null;
 
   return (
     <div

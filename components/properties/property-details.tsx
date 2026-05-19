@@ -87,7 +87,7 @@ export default function PropertyDetails({ id }: Props) {
             <div className="relative col-span-3 aspect-4/3 overflow-hidden rounded-2xl md:col-span-2 bg-muted">
               {data?.data?.image ? (
                 <img
-                  src={`${API_URL}${data?.data?.image}`}
+                  src={`${data?.data?.image}`}
                   alt={data?.data.title}
                   className="object-cover w-full h-full"
                 />
@@ -99,7 +99,7 @@ export default function PropertyDetails({ id }: Props) {
                 <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-semibold shadow">
                   {data?.data.type.iconPath && (
                     <img
-                      src={`${API_URL}${data?.data.type.iconPath}`}
+                      src={`${data?.data.type.iconPath}`}
                       alt=""
                       className="w-4 h-4"
                     />
@@ -153,7 +153,7 @@ export default function PropertyDetails({ id }: Props) {
                       >
                         {cat.iconPath && (
                           <img
-                            src={`${API_URL}${cat.iconPath}`}
+                            src={`${cat.iconPath}`}
                             alt=""
                             className="w-3.5 h-3.5"
                           />
@@ -297,7 +297,7 @@ export default function PropertyDetails({ id }: Props) {
                       >
                         {feature?.iconPath ? (
                           <img
-                            src={`${API_URL}${feature.iconPath}`}
+                            src={`${feature.iconPath}`}
                             alt=""
                             className="w-5 h-5 object-contain shrink-0"
                           />
@@ -329,7 +329,7 @@ export default function PropertyDetails({ id }: Props) {
                       >
                         {place.iconPath ? (
                           <img
-                            src={`${API_URL}${place.iconPath}`}
+                            src={`${place.iconPath}`}
                             alt=""
                             className="w-5 h-5 object-contain shrink-0"
                           />

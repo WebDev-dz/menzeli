@@ -1,6 +1,6 @@
 
 import initTranslations from "@/app/i18n";
-import { PropertyForm } from "@/components/properties/property-form";
+import { PropertyForm } from "@/components/properties/new-property-form";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 

@@ -18,11 +18,11 @@ export default function Footer() {
           <div className="space-y-8">
            <Link href="/" className="flex items-center gap-2">
                <Image
-                 src={"/images/mmb9j5lh-4pas8mg.svg"}
+                 src={"/images/menzili_logo.jpeg"}
                  alt={`${ConfigSite.siteName} Logo`}
-                 width={32}
+                 width={120}
                 height={32}
-                className="h-8 w-8"
+                className="h-8 w-auto"
               />
                <span className="text-xl font-extrabold text-slate-900 tracking-tight">{ConfigSite.siteName}</span>
              </Link>

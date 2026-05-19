@@ -18,7 +18,7 @@ export const formSchema: z.ZodType<ListingsStoreRequest, ListingsStoreRequest> =
   title: z.string().min(1, "Title is required"),
   price: z.number().min(0, "Price must be positive"),
   surface: z.number().positive("Surface must be positive"),
-  mainImage: fileSchema,                       // Blob <- File
+  mainImage: fileSchema.nullable(),                       // Blob <- File
   rentDurationId: z.number().int().positive("Rent duration is required"),
   typeId: z.number().int().positive("Property type is required"),
   location: z.object({
@@ -48,6 +48,7 @@ export const defaultProperty = {
       price: 25000,
       floor: 0,
       surface: 300,
+      mainImage: null,
       boostLevel: 0,
       minDuration: 10,
       numberRooms: 10,
@@ -88,12 +89,12 @@ export const ListingToForm = async (listing: ListingResource) : Promise<Listings
           },
           isReady: listing.isReady || true,
           isNegotiable: listing.isNegotiable || false,
-          mainImage: await urlToFile(`${API_URL}${listing.image}`) || null,
+          mainImage: await urlToFile(`${listing.image}`) || null,
           rentDurationId: listing.rentDuration?.id || 1,
           typeId: listing.type?.id || 1,
           features: listing.features?.map((f) => f.id) || [],
           nearPlaces: listing.nearPlaces?.map((p) => p.id) || [],
-          images: await Promise.all(listing.images?.map((i) => urlToFile(`${API_URL}${i.image}`)) || []) || [],
+          images: await Promise.all(listing.images?.map((i) => urlToFile(`${i.image}`)) || []) || [],
         })
 
 export type PropertyFormValues = z.infer<typeof formSchema>;

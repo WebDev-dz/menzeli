@@ -156,7 +156,7 @@ const ListingContent = (_props: Props) => {
             <img
               src={
                 listing.image
-                  ? `${API_URL}${listing.image}`
+                  ? `${listing.image}`
                   : "/images/placeholder-property.jpg"
               }
               alt={listing.title}
@@ -230,7 +230,7 @@ const ListingContent = (_props: Props) => {
               <img
                 src={
                   listing.image
-                    ? `${API_URL}${listing.image}`
+                    ? `${listing.image}`
                     : "/images/placeholder-property.jpg"
                 }
                 alt={listing.title}

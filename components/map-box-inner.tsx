@@ -38,7 +38,7 @@ function formatPrice(price: number) {
 
 // ─── Rich Popup Card ────────────────────────────────────────────────────────
 function PopupCard({ property }: { property: ListingResource }) {
-  const img = property.image ? `${API_URL}${property.image}` : null;
+  const img = property.image ? `${property.image}` : null;
 
   return (
     <div

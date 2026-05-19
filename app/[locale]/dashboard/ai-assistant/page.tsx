@@ -200,7 +200,7 @@ const AiAssistantPage = () => {
                                     src={
                                       recommendation.main_image?.startsWith("http")
                                         ? recommendation.main_image
-                                        : `${API_URL}${recommendation.main_image}`
+                                        : `${recommendation.main_image}`
                                     }
                                     alt={recommendation.title}
                                     className="h-20 w-20 rounded-lg object-cover"

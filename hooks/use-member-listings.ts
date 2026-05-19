@@ -7,7 +7,6 @@ import {
   ListingsIndexRequest,
   ListingsShowRequest,
   ListingsStoreRequest,
-  ListingsUpdateRequest,
   MemberListingsApi,
   PasswordResetRequestResetOtp403Response,
   Show200Response,
@@ -138,10 +137,39 @@ export function useUpdateMemberListing() {
   const queryClient = useQueryClient();
   const { token } = useAuth();
 
-  return useMutation<Show200Response, unknown, ListingsUpdateRequest>({
-    mutationFn: async (data) => {
+  return useMutation<
+    Show200Response,
+    unknown,
+    { listing: number; updateRequest: ListingsStoreRequest }
+  >({
+    mutationFn: async ({ listing, updateRequest }) => {
       if (!token) throw new Error("Not authenticated");
-      return await memberListingsApi.listingsUpdate(data, authInit(token));
+
+      const url = `${API_URL}/api/members/listings/${listing}`;
+      const formData = buildListingFormData(updateRequest);
+      formData.append("_method", "PUT");
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Accept-Language": "en",
+          Origin: API_URL,
+        },
+        redirect: "manual",
+        body: formData,
+      });
+
+      const json = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          json?.message || `Failed to update listing (${response.status})`,
+        );
+      }
+
+      return json as Show200Response;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["member-listings"] });
