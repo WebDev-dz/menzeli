@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef } from "react";
-import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { LocationResource } from "@/api/models/LocationResource";
 import { Skeleton } from "@/components/ui/skeletor";
@@ -17,7 +16,7 @@ const FALLBACK_CENTER: [number, number] = [3.0588, 36.7538];
 
 const LocationPlace = ({ location, isLoading, className }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<any | null>(null);
 
   const coordinates = useMemo(() => {
     const lat = Number(location?.latitude);
@@ -30,26 +29,36 @@ const LocationPlace = ({ location, isLoading, className }: Props) => {
   useEffect(() => {
     if (!containerRef.current || !coordinates || !MAPBOX_TOKEN) return;
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    let cancelled = false;
+    let map: any | null = null;
 
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [coordinates.lng, coordinates.lat],
-      zoom: 14,
-      attributionControl: false,
-    });
+    (async () => {
+      const mapboxModule = await import("mapbox-gl");
+      if (cancelled) return;
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "bottom-right");
+      const mapboxgl = (mapboxModule as any).default ?? mapboxModule;
+      mapboxgl.accessToken = MAPBOX_TOKEN;
 
-    new mapboxgl.Marker({ color: "#2563eb" })
-      .setLngLat([coordinates.lng, coordinates.lat])
-      .addTo(map);
+      map = new mapboxgl.Map({
+        container: containerRef.current!,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [coordinates.lng, coordinates.lat],
+        zoom: 14,
+        attributionControl: false,
+      });
 
-    mapRef.current = map;
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "bottom-right");
+
+      new mapboxgl.Marker({ color: "#2563eb" })
+        .setLngLat([coordinates.lng, coordinates.lat])
+        .addTo(map);
+
+      mapRef.current = map;
+    })();
 
     return () => {
-      map.remove();
+      cancelled = true;
+      map?.remove();
       mapRef.current = null;
     };
   }, [coordinates]);

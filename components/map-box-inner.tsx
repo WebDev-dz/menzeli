@@ -3,9 +3,6 @@
 import { useEffect, useRef, useCallback, RefObject } from "react";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type {  BoundsFilter } from "./map-search";
-import mapboxgl from "mapbox-gl";
-import { createRoot } from "react-dom/client";
-import { API_URL } from "@/lib/api-config";
 import { ListingResource } from "@/api";
 
 const ALGERIA_CENTER: [number, number] = [3.0, 36.5];
@@ -162,9 +159,9 @@ function PopupCard({ property }: { property: ListingResource }) {
 interface MapboxMapInnerProps {
   properties: ListingResource[];
   hoveredId: string | number | null;
-  mapboxgl: typeof mapboxgl;
+  mapboxgl: any;
   selectedId: string | number | null;
-  mapRef: RefObject<mapboxgl.Map | null>;
+  mapRef: RefObject<any | null>;
   onMarkerClick: (id: string | number) => void;
   onBoundsChange: (bounds: BoundsFilter) => void;
 }
@@ -180,15 +177,15 @@ export default function MapboxMapInner({
 }: MapboxMapInnerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<
-    Map<string | number, { marker: mapboxgl.Marker; el: HTMLElement }>
+    Map<string | number, { marker: any; el: HTMLElement }>
   >(new Map());
-  const popupRef = useRef<mapboxgl.Popup | null>(null);
-  const popupRootRef = useRef<ReturnType<typeof createRoot> | null>(null);
+  const popupRef = useRef<any | null>(null);
+  const popupRootRef = useRef<{ unmount: () => void } | null>(null);
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Fixed fireBounds ──────────────────────────────────────────────────────
   const fireBounds = useCallback(
-    (map: mapboxgl.Map) => {
+    (map: any) => {
       // always clear first, then schedule — this was the bug
       if (boundsTimer.current) clearTimeout(boundsTimer.current);
       boundsTimer.current = setTimeout(() => {
@@ -285,7 +282,7 @@ export default function MapboxMapInner({
       el.textContent = formatPrice(property.price);
       el.classList.add("w-16");
       // ── Click → open React popup ─────────────────────────────────────────
-      el.addEventListener("click", (e) => {
+      el.addEventListener("click", async (e) => {
         e.stopPropagation();
         onMarkerClick(property.id);
 
@@ -309,6 +306,7 @@ export default function MapboxMapInner({
           .addTo(map);
 
         // Mount React card into popup DOM
+        const { createRoot } = await import("react-dom/client");
         const root = createRoot(container);
         root.render(<PopupCard property={property} />);
         popupRootRef.current = root;

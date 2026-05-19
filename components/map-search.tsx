@@ -4,13 +4,11 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Map, Loader2 } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";
-import mapboxgl from "mapbox-gl";
-import { SearchBox } from "@mapbox/search-js-react";
+import type mapboxgl from "mapbox-gl";
 import { ListingResource } from '../api/models/ListingResource';
 import MapListCard from "./map/map-list-card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -56,11 +54,38 @@ export default function MapSearchView({
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [showSearchHere, setShowSearchHere] = useState(false);
+  const [mapboxgl, setMapboxgl] = useState<any>(null);
+  const [SearchBox, setSearchBox] = useState<any>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const pendingBoundsRef = useRef<BoundsFilter | null>(null);
 
   useEffect(() => setIsMounted(true), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const [mapboxModule, searchModule] = await Promise.all([
+        import("mapbox-gl"),
+        import("@mapbox/search-js-react"),
+      ]);
+
+      if (cancelled) return;
+
+      const mapbox = (mapboxModule as any).default ?? mapboxModule;
+      if (MAPBOX_ACCESS_TOKEN) {
+        mapbox.accessToken = MAPBOX_ACCESS_TOKEN;
+      }
+
+      setMapboxgl(mapbox);
+      setSearchBox(() => (searchModule as any).SearchBox);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const scrollToProperty = useCallback((id: string | number) => {
     const el = listRef.current?.querySelector(`[data-property-id="${id}"]`);
@@ -167,34 +192,35 @@ export default function MapSearchView({
                 maxWidth: 360,
               }}
             >
-              <SearchBox
-                accessToken={MAPBOX_ACCESS_TOKEN}
-                map={mapRef.current ?? undefined}
-                mapboxgl={mapboxgl}
-                onRetrieve={(result) => {
-                  // flyTo the selected place
-                  const [lng, lat] =
-                    result.features[0]?.geometry?.coordinates ?? [];
-                  if (lng && lat && mapRef.current) {
-                    mapRef.current.flyTo({
-                      center: [lng, lat],
-                      zoom: 13,
-                      duration: 800,
-                    });
-                  }
-                }}
-                options={{
-                  language: "ar",
-                  country: "DZ",
-                }}
-                theme={{
-                  variables: {
-                    fontFamily: "'Cairo', sans-serif",
-                    borderRadius: "10px",
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-                  },
-                }}
-              />
+              {SearchBox && mapboxgl ? (
+                <SearchBox
+                  accessToken={MAPBOX_ACCESS_TOKEN}
+                  map={mapRef.current ?? undefined}
+                  mapboxgl={mapboxgl}
+                  onRetrieve={(result: any) => {
+                    const [lng, lat] =
+                      result.features[0]?.geometry?.coordinates ?? [];
+                    if (lng && lat && mapRef.current) {
+                      mapRef.current.flyTo({
+                        center: [lng, lat],
+                        zoom: 13,
+                        duration: 800,
+                      });
+                    }
+                  }}
+                  options={{
+                    language: "ar",
+                    country: "DZ",
+                  }}
+                  theme={{
+                    variables: {
+                      fontFamily: "'Cairo', sans-serif",
+                      borderRadius: "10px",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                    },
+                  }}
+                />
+              ) : null}
             </div>
           )}
 
@@ -214,15 +240,24 @@ export default function MapSearchView({
             </div>
           )}
 
-          <MapboxMapInner
-            properties={properties}
-            mapRef={mapRef}
-            mapboxgl={mapboxgl}
-            hoveredId={hoveredId}
-            selectedId={selectedId}
-            onMarkerClick={handleMarkerClick}
-            onBoundsChange={handleBoundsChange}
-          />
+          {mapboxgl ? (
+            <MapboxMapInner
+              properties={properties}
+              mapRef={mapRef}
+              mapboxgl={mapboxgl}
+              selectedId={selectedId}
+              hoveredId={hoveredId}
+              onMarkerClick={handleMarkerClick}
+              onBoundsChange={handleBoundsChange}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-zinc-50">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="text-sm text-zinc-400">تحميل الخريطة...</p>
+              </div>
+            </div>
+          )}
         </div>
 
           {/* Scrollable list sidebar */}

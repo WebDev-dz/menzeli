@@ -17,11 +17,10 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Loader2, MapPin, LocateFixed, X } from "lucide-react";
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
 const ALGERIA_CENTER: [number, number] = [3.0, 36.5];
 const DEFAULT_ZOOM = 5;
@@ -62,8 +61,9 @@ export default function LocationPicker({
   country = "dz",
 }: LocationPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapboxRef = useRef<any>(null);
+  const mapRef = useRef<any | null>(null);
+  const markerRef = useRef<any | null>(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [address, setAddress] = useState(value?.address ?? "");
   const [hasPin, setHasPin] = useState(!!value?.lat);
@@ -71,8 +71,9 @@ export default function LocationPicker({
   // ── Place / move marker ──────────────────────────────────────────────────
   const placeMarker = useCallback(
     async (lng: number, lat: number) => {
+      const mapboxgl = mapboxRef.current;
       const map = mapRef.current;
-      if (!map) return;
+      if (!map || !mapboxgl) return;
 
       // Create or move marker
       if (!markerRef.current) {
@@ -117,7 +118,7 @@ export default function LocationPicker({
           const addr = await reverseGeocode(
             pos.lng,
             pos.lat,
-            mapboxgl.accessToken!,
+            MAPBOX_ACCESS_TOKEN,
             country
           );
           setAddress(addr);
@@ -135,7 +136,7 @@ export default function LocationPicker({
 
       // Reverse geocode
       setIsGeocoding(true);
-      const addr = await reverseGeocode(lng, lat, mapboxgl.accessToken!, country);
+      const addr = await reverseGeocode(lng, lat, MAPBOX_ACCESS_TOKEN, country);
       setAddress(addr);
       setIsGeocoding(false);
       onChange?.({ lat, lng, address: addr });
@@ -146,45 +147,60 @@ export default function LocationPicker({
   // ── Init map ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (mapRef.current || !containerRef.current) return;
+    if (!MAPBOX_ACCESS_TOKEN) return;
 
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: value ? [value.lng, value.lat] : ALGERIA_CENTER,
-      zoom: value ? 13 : DEFAULT_ZOOM,
-      attributionControl: false,
-    });
+    let cancelled = false;
+    let map: any | null = null;
 
-    map.addControl(
-      new mapboxgl.NavigationControl({ showCompass: false }),
-      "bottom-left"
-    );
-    map.addControl(
-      new mapboxgl.AttributionControl({ compact: true }),
-      "bottom-right"
-    );
+    (async () => {
+      const mapboxModule = await import("mapbox-gl");
+      if (cancelled) return;
 
-    // Click to place marker
-    map.on("click", (e) => {
-      placeMarker(e.lngLat.lng, e.lngLat.lat);
-    });
+      const mapboxgl = (mapboxModule as any).default ?? mapboxModule;
+      mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+      mapboxRef.current = mapboxgl;
 
-    // Change cursor on hover
-    map.on("mousemove", () => {
-      map.getCanvas().style.cursor = "crosshair";
-    });
+      map = new mapboxgl.Map({
+        container: containerRef.current!,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: value ? [value.lng, value.lat] : ALGERIA_CENTER,
+        zoom: value ? 13 : DEFAULT_ZOOM,
+        attributionControl: false,
+      });
 
-    mapRef.current = map;
+      map.addControl(
+        new mapboxgl.NavigationControl({ showCompass: false }),
+        "bottom-left"
+      );
+      map.addControl(
+        new mapboxgl.AttributionControl({ compact: true }),
+        "bottom-right"
+      );
 
-    // If value already set, place marker immediately
-    if (value?.lat && value?.lng) {
-      map.on("load", () => placeMarker(value.lng!, value.lat!));
-    }
+      // Click to place marker
+      map.on("click", (e: any) => {
+        placeMarker(e.lngLat.lng, e.lngLat.lat);
+      });
+
+      // Change cursor on hover
+      map.on("mousemove", () => {
+        map.getCanvas().style.cursor = "crosshair";
+      });
+
+      mapRef.current = map;
+
+      // If value already set, place marker immediately
+      if (value?.lat && value?.lng) {
+        map.on("load", () => placeMarker(value.lng!, value.lat!));
+      }
+    })();
 
     return () => {
-      map.remove();
+      cancelled = true;
+      map?.remove();
       mapRef.current = null;
       markerRef.current = null;
+      mapboxRef.current = null;
     };
   }, []);
 
